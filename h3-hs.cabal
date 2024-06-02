@@ -68,14 +68,14 @@ library
     -- Modules included in this library but not exported.
     other-modules:
         H3.Internal.H3Api,
-        H3.Internal.H3FFI
+        H3.Internal.FFI
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
 
     -- Other library packages from which modules are imported.
-    -- base ^>=4.17.2.1
-    build-depends:    base >= 4.9 && <5 
+    build-depends:
+        base ^>=4.17.2.1
 
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -101,7 +101,6 @@ executable h3-hs
     -- other-extensions:
 
     -- Other library packages from which modules are imported.
-    -- base >= 4.9 && <5,
     build-depends: 
         base ^>=4.17.2.1, 
         h3-hs
