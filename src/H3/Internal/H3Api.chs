@@ -6,17 +6,6 @@ module H3.Internal.H3Api
   ) where
 
 import Foreign.C.Types (CULong, CUInt)
-{-
-import Control.Monad (liftM2, liftM3)
-import Foreign.Marshal.Utils (with)
-import Foreign.Marshal.Alloc (alloca, finalizerFree, malloc, free)
-import Foreign.Marshal.Array (withArrayLen, peekArray, newArray)
-import Foreign.C.String (CString, withCStringLen, peekCString, peekCStringLen)
-import Foreign.Storable (Storable(peek, poke))
-import Foreign.C.Types (CDouble(CDouble), CULong, CUInt, CInt(CInt), CSize)
-import Foreign.ForeignPtr (ForeignPtr, withForeignPtr, newForeignPtr, newForeignPtr_, FinalizerPtr, addForeignPtrFinalizer, mallocForeignPtr)
-import Foreign.Ptr (Ptr, castPtr, nullPtr)
--}
 
 #include "h3/h3api.h"
 
