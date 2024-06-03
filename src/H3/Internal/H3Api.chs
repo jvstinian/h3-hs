@@ -10,9 +10,9 @@ module H3.Internal.H3Api
   , c2hs_h3ToString
   ) where
 
-import Foreign.C.Types (CULong, CInt, CDouble(CDouble){-, CUInt-})
+import Foreign.C.Types (CULong, CInt, CDouble(CDouble))
 import Data.Word (Word64, Word32)
-import Foreign.Ptr (Ptr{-, castPtr, nullPtr-})
+import Foreign.Ptr (Ptr)
 import Foreign.Marshal.Array (withArrayLen, peekArray)
 import Foreign.Marshal.Utils (with)
 import Foreign.Marshal.Alloc (alloca)
@@ -28,13 +28,6 @@ import Foreign.Storable (Storable(peek, poke))
 -- |H3Error is the output for most of the funtions in the H3 API. 
 --  The C type is uint32_t, in Haskell we use CUInt.
 type H3Error = Word32
--- type H3Error = CUInt -- Word32 seems to work as well
-
-{-
--- |CH3Index is the numeric representation of the H3 geohashing in C.
---  The C type is uint64_t, in Haskell we represent this as CULong.
-type CH3Index = CULong --Word64
--}
 
 -- |H3Index is a type synonym for Word64, which we use as 
 --  the numeric representation of the H3 index in Haskell
@@ -62,8 +55,6 @@ instance Storable LatLng where
 
 peekAsH3Index :: Ptr CULong -> IO Word64
 peekAsH3Index ptr = fromIntegral <$> peek ptr
-
--- {# pointer *uint64_t as CH3IndexPtr -> CH3Index #}
 
 {#fun pure latLngToCell as c2hs_latLngToCell
       { with*   `LatLng',
@@ -113,16 +104,12 @@ cellBoundaryToLatLngs cellptr = do
         withPlaceholderCellBoundary-  `[LatLng]' cellBoundaryToLatLngs* 
       } -> `H3Error' fromIntegral #}
 
+-- Inspection Methods
+
 allocaCStringLen :: ((CString, CULong)-> IO a) -> IO a
 allocaCStringLen fn = withCStringLen dummyString fnint
     where dummyString = replicate 17 '0'
           fnint (cstr, i) = fn (cstr, fromIntegral i)
-
-{- TODO: Remove?
-peekCStringWithLen :: CString -> CULong -> IO String
-peekCStringWithLen = curry (peekCStringLen . ulongConvert)
-    where ulongConvert (cstr, ulong) = (cstr, fromIntegral ulong)
--}
 
 peekCStringIgnoreLen :: CString -> CULong -> IO String
 peekCStringIgnoreLen cstr _ = peekCString cstr
