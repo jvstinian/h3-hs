@@ -2,19 +2,21 @@
 module H3.Internal.H3Api
   ( H3ErrorCodes(..)
   , H3Error
-  , CH3Index
+  , H3Index
   , LatLng(LatLng)
   , c2hs_latLngToCell
   , c2hs_cellToLatLng
   , c2hs_cellToBoundary
+  , c2hs_h3ToString
   ) where
 
 import Foreign.C.Types (CULong, CUInt, CInt, CDouble(CDouble))
--- import Data.Word (Word64, Word32)
+import Data.Word (Word64, Word32)
 import Foreign.Ptr (Ptr{-, castPtr, nullPtr-})
 import Foreign.Marshal.Array (withArrayLen, peekArray)
 import Foreign.Marshal.Utils (with)
 import Foreign.Marshal.Alloc (alloca)
+import Foreign.C.String (CString, withCStringLen, peekCString)
 import Foreign.Storable (Storable(peek, poke))
 
 
@@ -30,6 +32,10 @@ type H3Error = CUInt -- Word32 seems to work as well
 -- |CH3Index is the numeric representation of the H3 geohashing in C.
 --  The C type is uint64_t, in Haskell we represent this as CULong.
 type CH3Index = CULong --Word64
+
+-- |H3Index is a type synonym for Word64, which we use as 
+--  the numeric representation of the H3 geohashing in Haskell
+type H3Index = Word64
 
 data LatLng = LatLng 
     { lat :: Double -- ^ Latitude
@@ -51,21 +57,19 @@ instance Storable LatLng where
 -- |LatLngPtr which is needed for the c2hs fun hooks
 {# pointer *LatLng as LatLngPtr -> LatLng #}
 
-{-
-peekH3Index :: Ptr CULong -> IO Word64
-peekH3Index ptr = fromIntegral <$> peek ptr
--}
+peekAsH3Index :: Ptr CULong -> IO Word64
+peekAsH3Index ptr = fromIntegral <$> peek ptr
 
 -- {# pointer *uint64_t as CH3IndexPtr -> CH3Index #}
 
 {#fun pure latLngToCell as c2hs_latLngToCell
       { with*   `LatLng',
                 `Int',
-        alloca- `CH3Index' peek*
+        alloca- `H3Index' peekAsH3Index*
       } -> `H3Error' fromIntegral #}
 
 {#fun pure cellToLatLng as c2hs_cellToLatLng
-      { fromIntegral `CH3Index',
+      { fromIntegral `H3Index',
         alloca- `LatLng' peek*
       } -> `H3Error' fromIntegral #}
 
@@ -102,7 +106,26 @@ cellBoundaryToLatLngs cellptr = do
       return resll
 
 {#fun pure cellToBoundary as c2hs_cellToBoundary
-      { fromIntegral                  `CH3Index', 
+      { fromIntegral                  `H3Index', 
         withPlaceholderCellBoundary-  `[LatLng]' cellBoundaryToLatLngs* 
+      } -> `H3Error' fromIntegral #}
+
+allocaCStringLen :: ((CString, CULong)-> IO a) -> IO a
+allocaCStringLen fn = withCStringLen dummyString fnint
+    where dummyString = replicate 17 '0'
+          fnint (cstr, i) = fn (cstr, fromIntegral i)
+
+{- TODO: Remove?
+peekCStringWithLen :: CString -> CULong -> IO String
+peekCStringWithLen = curry (peekCStringLen . ulongConvert)
+    where ulongConvert (cstr, ulong) = (cstr, fromIntegral ulong)
+-}
+
+peekCStringWithLen :: CString -> CULong -> IO String
+peekCStringWithLen cstr _ = peekCString cstr
+
+{#fun pure h3ToString as c2hs_h3ToString
+      { fromIntegral `H3Index',
+        allocaCStringLen- `String'& peekCStringWithLen*
       } -> `H3Error' fromIntegral #}
 
