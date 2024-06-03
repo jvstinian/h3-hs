@@ -1,5 +1,6 @@
 module H3.Indexing
   ( LatLng(LatLng)
+  , H3ErrorCodes(..)
   , latLngToCell
   , cellToLatLng
   , cellToBoundary
@@ -7,7 +8,7 @@ module H3.Indexing
 
 import H3.Internal.H3Api 
   ( LatLng(LatLng)
-  , H3ErrorCodes
+  , H3ErrorCodes(..)
   , H3Index
   , c2hs_latLngToCell
   , c2hs_cellToLatLng

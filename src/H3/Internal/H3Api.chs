@@ -8,6 +8,7 @@ module H3.Internal.H3Api
   , c2hs_cellToLatLng
   , c2hs_cellToBoundary
   , c2hs_h3ToString
+  , c2hs_stringToH3
   ) where
 
 import Foreign.C.Types (CULong, CInt, CDouble(CDouble))
@@ -16,7 +17,7 @@ import Foreign.Ptr (Ptr)
 import Foreign.Marshal.Array (withArrayLen, peekArray)
 import Foreign.Marshal.Utils (with)
 import Foreign.Marshal.Alloc (alloca)
-import Foreign.C.String (CString, withCStringLen, peekCString)
+import Foreign.C.String (CString, withCStringLen, peekCString, withCString)
 import Foreign.Storable (Storable(peek, poke))
 
 
@@ -117,5 +118,10 @@ peekCStringIgnoreLen cstr _ = peekCString cstr
 {#fun pure h3ToString as c2hs_h3ToString
       { fromIntegral `H3Index',
         allocaCStringLen- `String'& peekCStringIgnoreLen*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure stringToH3 as c2hs_stringToH3
+      { withCString* `String',
+        alloca- `H3Index' peekAsH3Index*
       } -> `H3Error' fromIntegral #}
 
