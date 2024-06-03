@@ -10,7 +10,7 @@ module H3.Internal.H3Api
   , c2hs_h3ToString
   ) where
 
-import Foreign.C.Types (CULong, CUInt, CInt, CDouble(CDouble))
+import Foreign.C.Types (CULong, CInt, CDouble(CDouble){-, CUInt-})
 import Data.Word (Word64, Word32)
 import Foreign.Ptr (Ptr{-, castPtr, nullPtr-})
 import Foreign.Marshal.Array (withArrayLen, peekArray)
@@ -27,14 +27,17 @@ import Foreign.Storable (Storable(peek, poke))
 
 -- |H3Error is the output for most of the funtions in the H3 API. 
 --  The C type is uint32_t, in Haskell we use CUInt.
-type H3Error = CUInt -- Word32 seems to work as well
+type H3Error = Word32
+-- type H3Error = CUInt -- Word32 seems to work as well
 
+{-
 -- |CH3Index is the numeric representation of the H3 geohashing in C.
 --  The C type is uint64_t, in Haskell we represent this as CULong.
 type CH3Index = CULong --Word64
+-}
 
 -- |H3Index is a type synonym for Word64, which we use as 
---  the numeric representation of the H3 geohashing in Haskell
+--  the numeric representation of the H3 index in Haskell
 type H3Index = Word64
 
 data LatLng = LatLng 
@@ -121,11 +124,11 @@ peekCStringWithLen = curry (peekCStringLen . ulongConvert)
     where ulongConvert (cstr, ulong) = (cstr, fromIntegral ulong)
 -}
 
-peekCStringWithLen :: CString -> CULong -> IO String
-peekCStringWithLen cstr _ = peekCString cstr
+peekCStringIgnoreLen :: CString -> CULong -> IO String
+peekCStringIgnoreLen cstr _ = peekCString cstr
 
 {#fun pure h3ToString as c2hs_h3ToString
       { fromIntegral `H3Index',
-        allocaCStringLen- `String'& peekCStringWithLen*
+        allocaCStringLen- `String'& peekCStringIgnoreLen*
       } -> `H3Error' fromIntegral #}
 
