@@ -5,7 +5,6 @@ module H3.Indexing
   , cellToBoundary
   ) where
 
--- import Data.Word (Word64)
 import H3.Internal.H3Api 
   ( LatLng(LatLng)
   , H3ErrorCodes
