@@ -29,7 +29,7 @@ synopsis:           A Haskell binding for H3
 -- description:
 
 -- URL for the project homepage or repository.
-homepage:           TBD
+homepage:           https://github.com/jvstinian/h3-hs
 
 -- The license under which the package is released.
 license:            BSD-3-Clause
@@ -63,18 +63,22 @@ library
 
     -- Modules exported by the library.
     exposed-modules:  
-        Miscellaneous
-        H3ErrorCodes
+        H3.Miscellaneous
+        H3.Indexing
+        H3.Inspection
 
     -- Modules included in this library but not exported.
-    -- other-modules:
+    other-modules:
+        H3.Internal.H3Api
+        H3.Internal.FFI
+        H3.Internal.Utils
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
 
     -- Other library packages from which modules are imported.
-    -- base ^>=4.17.2.1
-    build-depends:    base >= 4.9 && <5 
+    build-depends:
+        base ^>=4.17.2.1
 
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -100,7 +104,6 @@ executable h3-hs
     -- other-extensions:
 
     -- Other library packages from which modules are imported.
-    -- base >= 4.9 && <5,
     build-depends: 
         base ^>=4.17.2.1, 
         h3-hs
@@ -120,8 +123,8 @@ test-suite h3-hs-test
 
     -- Modules included in this executable, other than Main.
     other-modules:
-      IndexingTest
       MiscellaneousTest
+      IndexingTest
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:

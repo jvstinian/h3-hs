@@ -1,8 +1,6 @@
 module Main where
 
-import Miscellaneous (degsToRads)
-import H3ErrorCodes
-import Foreign.ForeignPtr (withForeignPtr)
+import H3.Miscellaneous (degsToRads)
 
 main :: IO ()
 main = do
