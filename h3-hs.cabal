@@ -66,6 +66,7 @@ library
         H3.Miscellaneous
         H3.Indexing
         H3.Inspection
+        H3.Regions
 
     -- Modules included in this library but not exported.
     other-modules:

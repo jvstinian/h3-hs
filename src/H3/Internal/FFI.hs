@@ -8,17 +8,26 @@ module H3.Internal.FFI
   , isValidCell
   , isResClassIII
   , isPentagon
-  , hsGetIcosahedronFaces 
+  , hsGetIcosahedronFaces
+  , hsPolygonToCells 
   ) where
 
 -- import System.IO.Unsafe (unsafePerformIO)
-import H3.Internal.H3Api (H3Index, H3Error)
-import Foreign.C.Types (CInt)
+import Data.Word (Word32)
 import System.IO.Unsafe (unsafePerformIO)
+import Foreign.C.Types (CInt, CLong)
 import Foreign.Ptr (Ptr)
 import Foreign.Storable (Storable(peek))
-import Foreign.Marshal.Alloc (alloca)
-import Foreign.Marshal.Array (allocaArray, peekArray)
+import Foreign.Marshal.Alloc (alloca, free)
+import Foreign.Marshal.Array (allocaArray, peekArray, callocArray)
+import H3.Internal.H3Api 
+  ( H3Index
+  , H3Error
+  , CGeoPolygon
+  , newCGeoPolygonPtr 
+  , destroyCGeoPolygonPtr 
+  , GeoPolygon
+  )
 
 
 -- |degsToRads converts from degrees to radians.
@@ -58,4 +67,44 @@ hsGetIcosahedronFaces h3index =
           return (out3error, faces)
         else return (out3error, [])
     else return (h3error, [])
+
+-- Regions
+
+foreign import capi "h3/h3api.h maxPolygonToCellsSize" cMaxPolygonToCellsSize :: Ptr CGeoPolygon -> Int -> Word32 -> Ptr CLong -> IO H3Error
+
+{-
+hsMaxPolygonToCellsSize :: GeoPolygon -> Int -> Word32 -> IO (H3Error, CLong)
+hsMaxPolygonToCellsSize poly res flags = do
+  cpolyPtr <- newCGeoPolygonPtr poly
+  out <- alloca $ \resultPtr -> do
+    h3error <- cMaxPolygonToCellsSize cpolyPtr res flags resultPtr
+    result <- peek resultPtr
+    return (h3error, result)
+  destroyCGeoPolygonPtr cpolyPtr 
+  return out
+-}
+
+foreign import capi "h3/h3api.h polygonToCells" cPolygonToCells :: Ptr CGeoPolygon -> Int -> Word32 -> Ptr H3Index -> IO H3Error
+
+hsPolygonToCellsIO :: GeoPolygon -> Int -> Word32 -> IO (H3Error, [H3Index])
+hsPolygonToCellsIO poly res flags = do
+  cpolyPtr <- newCGeoPolygonPtr poly
+  (h3error, size) <- alloca $ \resultPtr -> do
+    h3error <- cMaxPolygonToCellsSize cpolyPtr res flags resultPtr
+    result <- peek resultPtr
+    return (h3error, result)
+  out <- if h3error == 0
+         then do let sizei = fromIntegral size
+                 resultPtr <- callocArray sizei
+                 h3error2 <- cPolygonToCells cpolyPtr res flags resultPtr
+                 result <- peekArray sizei resultPtr
+                 free resultPtr
+                 return (h3error2, result)
+         else 
+           return (h3error, [])
+  destroyCGeoPolygonPtr cpolyPtr 
+  return out
+
+hsPolygonToCells :: GeoPolygon -> Int -> Word32 -> (H3Error, [H3Index])
+hsPolygonToCells poly res flags = unsafePerformIO $ hsPolygonToCellsIO poly res flags
 
