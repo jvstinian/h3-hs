@@ -139,3 +139,103 @@ hsGetPentagons res = do
     result <- peekArray cellCount resultPtr
     return (h3error, result)
 
+
+-- Traversals
+
+foreign import capi "h3/h3api.h maxGridDiskSize" cMaxGridDiskSize :: Int -> Ptr Int64 -> IO H3Error
+
+hsGridDiskUsingMethod :: (H3Index -> Int -> Ptr H3Index -> IO H3Error) -> H3Index -> Int -> IO (H3Error, [H3Index])
+hsGridDiskUsingMethod diskMethod h3index k = do
+  alloca $ \maxSizePtr -> do
+    sizeh3error <- cMaxGridDiskSize k maxSizePtr
+    if sizeh3error == 0
+    then do
+      maxSize <- fromIntegral <$> peek maxSizePtr
+      allocaArray maxSize $ \resultPtr -> do
+        h3error <- diskMethod h3index k resultPtr
+        result <- peekArray maxSize resultPtr
+        return (h3error, result)
+    else do
+      return (sizeh3error, [])
+ 
+foreign import capi "h3/h3api.h gridDisk" cGridDisk :: H3Index -> Int -> Ptr H3Index -> IO H3Error
+
+hsGridDisk :: H3Index -> Int -> IO (H3Error, [H3Index])
+hsGridDisk = hsGridDiskUsingMethod cGridDisk
+
+{-do
+  alloca $ \maxSizePtr -> do
+    sizeh3error <- cMaxGridDiskSize k maxSizePtr
+    if sizeh3error == 0
+    then do
+      maxSize <- fromIntegral <$> peek maxSizePtr
+      allocaArray maxSize $ \resultPtr -> do
+        h3error <- cGridDisk h3index k resultPtr
+        result <- peekArray maxSize resultPtr
+        return (h3error, result)
+    else do
+      return (sizeh3error, [])
+-} 
+
+foreign import capi "h3/h3api.h gridDiskUnsafe" cGridDiskUnsafe :: H3Index -> Int -> Ptr H3Index -> IO H3Error
+
+hsGridDiskUnsafe = hsGridDiskUsingMethod cGridDiskUnsafe
+
+hsGridDiskDistancesUsingMethod :: (H3Index -> Int -> Ptr H3Index -> Ptr CInt -> IO H3Error) -> H3Index -> Int -> IO (H3Error, [H3Index], [Int])
+hsGridDiskDistancesUsingMethod diskDistanceMethod h3index k = do
+  alloca $ \maxSizePtr -> do
+    sizeh3error <- cMaxGridDiskSize k maxSizePtr
+    if sizeh3error == 0
+    then do
+      maxSize <- fromIntegral <$> peek maxSizePtr
+      allocaArray maxSize $ \indexResultPtr -> do
+        allocaArray maxSize $ \distanceResultPtr -> do
+          h3error <- diskDistanceMethod h3index k indexResultPtr distanceResultPtr
+          indexResult <- peekArray maxSize indexResultPtr
+          distanceResult <- map fromIntegral <$> peekArray maxSize distanceResultPtr
+          return (h3error, indexResult, distanceResult)
+    else do
+      return (sizeh3error, [], [])
+
+foreign import capi "h3/h3api.h gridDiskDistances" cGridDiskDistances :: H3Index -> Int -> Ptr H3Index -> Ptr CInt -> IO H3Error
+
+hsGridDiskDistances :: H3Index -> Int -> IO (H3Error, [H3Index], [Int])
+hsGridDiskDistances = hsGridDiskDistancesUsingMethod cGridDiskDistances
+
+foreign import capi "h3/h3api.h gridDiskDistancesSafe" cGridDiskDistancesSafe :: H3Index -> Int -> Ptr H3Index -> Ptr CInt -> IO H3Error
+
+hsGridDiskDistancesSafe :: H3Index -> Int -> IO (H3Error, [H3Index], [Int])
+hsGridDiskDistancesSafe = hsGridDiskDistancesUsingMethod cGridDiskDistancesSafe
+
+foreign import capi "h3/h3api.h gridDiskDistancesUnsafe" cGridDiskDistancesUnsafe :: H3Index -> Int -> Ptr H3Index -> Ptr CInt -> IO H3Error
+
+hsGridDiskDistancesUnsafe :: H3Index -> Int -> IO (H3Error, [H3Index], [Int])
+hsGridDiskDistancesUnsafe = hsGridDiskDistancesUsingMethod cGridDiskDistancesUnsafe
+
+-- TODO: Skipping gridDisksUnsafe
+
+-- NOTE: Assuming gridRingUnsafe also expects an array of size maxGridDiskSize
+
+foreign import capi "h3/h3api.h gridRingUnsafe" cGridRingUnsafe :: H3Index -> Int -> Ptr H3Index -> IO H3Error
+
+hsGridRingUnsafe :: H3Index -> Int -> IO (H3Error, [H3Index])
+hsGridRingUnsafe = hsGridDiskUsingMethod cGridRingUnsafe
+
+foreign import capi "h3/h3api.h gridPathCellsSize" cGridPathCellsSize :: H3Index -> H3Index -> Ptr Int64 -> IO H3Error
+
+foreign import capi "h3/h3api.h gridPathCells" cGridPathCells :: H3Index -> H3Index -> Ptr H3Index -> IO H3Error
+
+hsGridPathCells :: H3Index -> H3Index -> IO (H3Error, [H3Index])
+hsGridPathCells origin h3 = 
+  alloca $ \sizePtr -> do
+    sizeh3error <- cGridPathCellsSize origin h3 sizePtr
+    if sizeh3error == 0
+    then do
+      size <- fromIntegral <$> peek sizePtr
+      allocaArray size $ \resultPtr -> do
+        h3error <- cGridPathCells origin h3 resultPtr
+        result <- peekArray size resultPtr
+        return (h3error, result)
+    else do
+      return (sizeh3error, [])
+
