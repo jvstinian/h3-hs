@@ -5,8 +5,9 @@ import H3.Miscellaneous (degsToRads)
 main :: IO ()
 main = do
   putStrLn $ "90 degress in radians: " ++ show (degsToRads 90)
-  exampleGeoPolygon
+  -- exampleGeoPolygon
 
+{-
 exampleGeoPolygon :: IO ()
 exampleGeoPolygon = do
   let coords = LatLng (degsToRads 45) (degsToRads (-72.5))
@@ -21,4 +22,4 @@ exampleGeoPolygon = do
   putStrLn $ "Second attempt status: " ++ show h3error2
   
   putStrLn $ "Results are the same: " ++ show (gps == gps2)
-
+-}
