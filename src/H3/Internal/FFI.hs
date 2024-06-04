@@ -10,9 +10,12 @@ module H3.Internal.FFI
   , isPentagon
   , hsGetIcosahedronFaces
   , hsPolygonToCells 
+  , hsGetRes0Cells
+  , hsGetPentagons
   ) where
 
 -- import System.IO.Unsafe (unsafePerformIO)
+import Data.Int (Int64)
 import Data.Word (Word32)
 import System.IO.Unsafe (unsafePerformIO)
 import Foreign.C.Types (CInt, CLong)
@@ -107,4 +110,32 @@ hsPolygonToCellsIO poly res flags = do
 
 hsPolygonToCells :: GeoPolygon -> Int -> Word32 -> (H3Error, [H3Index])
 hsPolygonToCells poly res flags = unsafePerformIO $ hsPolygonToCellsIO poly res flags
+
+
+-- Miscellaneous
+
+
+foreign import capi "h3/h3api.h res0CellCount" cRes0CellCount :: IO Int
+
+foreign import capi "h3/h3api.h getRes0Cells" cGetRes0Cells :: Ptr H3Index -> IO H3Error
+
+hsGetRes0Cells :: IO (H3Error, [H3Index])
+hsGetRes0Cells = do
+  cellCount <- cRes0CellCount
+  allocaArray cellCount $ \resultPtr -> do
+    h3error <- cGetRes0Cells resultPtr
+    result <- peekArray cellCount resultPtr
+    return (h3error, result)
+
+foreign import capi "h3/h3api.h pentagonCount" cPentagonCount :: IO Int
+
+foreign import capi "h3/h3api.h getPentagons" cGetPentagons :: Int -> Ptr H3Index -> IO H3Error
+
+hsGetPentagons :: Int -> IO (H3Error, [H3Index])
+hsGetPentagons res = do
+  cellCount <- cPentagonCount
+  allocaArray cellCount $ \resultPtr -> do
+    h3error <- cGetPentagons res resultPtr
+    result <- peekArray cellCount resultPtr
+    return (h3error, result)
 
