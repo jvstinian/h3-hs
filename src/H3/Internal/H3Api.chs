@@ -542,3 +542,32 @@ instance Storable CoordIJ where
         alloca- `H3Index' peekAsH3Index*
       } -> `H3Error' fromIntegral #}
 
+
+-- Hierarchy
+
+
+{#fun pure cellToParent as c2hs_cellToParent
+      { fromIntegral `H3Index',
+        `Int',
+        alloca- `H3Index' peekAsH3Index*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure cellToCenterChild as c2hs_cellToCenterChild
+      { fromIntegral `H3Index',
+        `Int',
+        alloca- `H3Index' peekAsH3Index*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure cellToChildPos as c2hs_cellToChildPos
+      { fromIntegral `H3Index',
+        `Int',
+        alloca- `Int64' peekInt64*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure childPosToCell as c2hs_childPosToCell 
+      { `Int64',
+        fromIntegral `H3Index',
+        `Int',
+        alloca- `H3Index' peekAsH3Index*
+      } -> `H3Error' fromIntegral #}
+
