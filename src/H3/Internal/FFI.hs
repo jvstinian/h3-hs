@@ -370,3 +370,27 @@ hsOriginToDirectedEdges h3index = do
     else return (h3error, [])
   where edgeCount = 6
 
+
+-- Vertexes 
+
+
+foreign import capi "h3/h3api.h cellToVertexes" cCellToVertexes :: H3Index -> Ptr H3Index -> IO H3Error
+
+hsCellToVertexes :: H3Index -> IO (H3Error, [H3Index])
+hsCellToVertexes origin = do
+  allocaArray vertexCount $ \outPtr -> do
+    h3error <- cCellToVertexes origin outPtr
+    if h3error == 0
+    then do
+      out <- peekArray vertexCount outPtr
+      return (h3error, out)
+    else return (h3error, [])
+  where vertexCount = 6
+
+foreign import capi "h3/h3api.h isValidVertex" cIsValidVertex :: H3Index -> Int
+
+isValidVertex :: H3Index -> Bool
+isValidVertex = (/=0) . cIsValidVertex
+
+
+

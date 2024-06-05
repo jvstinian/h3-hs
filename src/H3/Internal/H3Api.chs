@@ -605,3 +605,18 @@ peekBool intPtr = (/=0) <$> peek intPtr
         withPlaceholderCellBoundary-  `[LatLng]' cellBoundaryToLatLngs* 
       } -> `H3Error' fromIntegral #}
 
+
+-- Vertexes 
+
+
+{#fun pure cellToVertex as c2hs_cellToVertex
+      { fromIntegral `H3Index',
+        `Int',
+        alloca- `H3Index' peekAsH3Index*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure vertexToLatLng as c2hs_vertexToLatLng
+      { fromIntegral `H3Index',
+        alloca- `LatLng' peek*
+      } -> `H3Error' fromIntegral #}
+
