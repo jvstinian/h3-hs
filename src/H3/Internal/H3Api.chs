@@ -571,3 +571,37 @@ instance Storable CoordIJ where
         alloca- `H3Index' peekAsH3Index*
       } -> `H3Error' fromIntegral #}
 
+
+-- Directed edges
+
+
+peekBool :: Ptr CInt -> IO Bool
+peekBool intPtr = (/=0) <$> peek intPtr
+
+{#fun pure areNeighborCells as c2hs_areNeighborCells
+      { fromIntegral `H3Index',
+        fromIntegral `H3Index',
+        alloca- `Bool' peekBool*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure cellsToDirectedEdge as c2hs_cellsToDirectedEdge
+      { fromIntegral `H3Index',
+        fromIntegral `H3Index',
+        alloca- `H3Index' peekAsH3Index*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure getDirectedEdgeOrigin as c2hs_getDirectedEdgeOrigin
+      { fromIntegral `H3Index',
+        alloca- `H3Index' peekAsH3Index*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure getDirectedEdgeDestination as c2hs_getDirectedEdgeDestination
+      { fromIntegral `H3Index',
+        alloca- `H3Index' peekAsH3Index*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure directedEdgeToBoundary as c2hs_directedEdgeToBoundary
+      { fromIntegral                  `H3Index',
+        withPlaceholderCellBoundary-  `[LatLng]' cellBoundaryToLatLngs* 
+      } -> `H3Error' fromIntegral #}
+
