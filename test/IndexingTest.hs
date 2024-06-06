@@ -24,10 +24,6 @@ tests =
         ]
     , testGroup "Cell To Boundary"
         [ testCellToBoundary ]
-    , testGroup "Convert between H3Index and Cell Address"
-        [ testIntToString
-        , testStringToInt
-        ]
     ]
 
 -- The following implements https://github.com/uber/h3/blob/master/tests/cli/latLngToCell.txt
@@ -129,30 +125,4 @@ testAddressToLatLngWithCenterValues = testProperty "Testing address to coordinat
         approxEq :: LatLng -> LatLng -> Bool
         approxEq (LatLng lat1 lng1) (LatLng lat2 lng2) = abs (lat1 - lat2) < tol && abs (lng1 - lng2) < tol
             where tol = 1e-6
-
-testIntToString :: Test
-testIntToString = testProperty "Testing conversion from H3 index to cell address" $
-    actualValE == expectedValE
-    where
-      inputVal = 599686042433355775 
-      actualValE = h3ToString inputVal
-      expectedValE = Right "85283473fffffff"
-
-testStringToInt :: Test
-testStringToInt = testProperty "Testing conversion from cell address to H3 index" $
-    actualValE == expectedValE
-    where
-      inputVal = "85283473fffffff"
-      actualValE = stringToH3 inputVal
-      expectedValE = Right 599686042433355775
-
-{- Move to InspectionTest
-testInvalidCellToLatLng :: Test
-testInvalidCellToLatLng = testProperty "Testing invalid cell value" $
-    latLngE == expectedResultE
-    where
-        latLngRadsToDegs (LatLng lat lng) = LatLng (radsToDegs lat) (radsToDegs lng)
-        latLngE = (stringToH3 "asdf") >>= cellToLatLng >>= (return . latLngRadsToDegs)
-        expectedResultE = Left E_CELL_INVALID
--}
 

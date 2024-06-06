@@ -125,6 +125,7 @@ test-suite h3-hs-test
     other-modules:
       MiscellaneousTest
       IndexingTest
+      InspectionTest
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:

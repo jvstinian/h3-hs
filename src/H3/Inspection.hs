@@ -31,7 +31,8 @@ stringToH3 = toEither . c2hs_stringToH3
 h3ToString :: H3Index -> Either H3ErrorCodes String
 h3ToString = toEither . c2hs_h3ToString
 
--- TODO: Do we remove the -1s?
+-- | Return all icosahedron faces intersected by a given H3 index.  Faces are represented as integers from 0-19, inclusive. 
+--   The array is sparse, and empty (no intersection) array values are represented by -1.
 getIcosahedronFaces :: H3Index -> Either H3ErrorCodes [Int]
 getIcosahedronFaces = toEither . hsGetIcosahedronFaces
 
