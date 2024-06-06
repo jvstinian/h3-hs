@@ -11,7 +11,6 @@ module H3.Internal.FFI
   , hsGetIcosahedronFaces 
   ) where
 
--- import System.IO.Unsafe (unsafePerformIO)
 import H3.Internal.H3Api (H3Index, H3Error)
 import Foreign.C.Types (CInt)
 import System.IO.Unsafe (unsafePerformIO)
