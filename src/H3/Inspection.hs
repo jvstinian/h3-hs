@@ -23,9 +23,11 @@ import H3.Internal.FFI
   , hsGetIcosahedronFaces )
 import H3.Internal.Utils (toEither)
 
+-- |Converts the string representation to the H3Index (Word64) representation.
 stringToH3 :: String -> Either H3ErrorCodes H3Index
 stringToH3 = toEither . c2hs_stringToH3
 
+-- |Converts the H3Index representation to the string representation.
 h3ToString :: H3Index -> Either H3ErrorCodes String
 h3ToString = toEither . c2hs_h3ToString
 

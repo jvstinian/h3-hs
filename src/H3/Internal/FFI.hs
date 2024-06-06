@@ -33,6 +33,7 @@ foreign import capi "h3/h3api.h getResolution" getResolution :: H3Index -> Int
 
 foreign import capi "h3/h3api.h getBaseCellNumber" getBaseCellNumber :: H3Index -> Int
 
+-- |isValidCell returns non-zero if this is a valid H3 cell index
 foreign import capi "h3/h3api.h isValidCell" isValidCell :: H3Index -> Int
 
 foreign import capi "h3/h3api.h isResClassIII" isResClassIII :: H3Index -> Int
