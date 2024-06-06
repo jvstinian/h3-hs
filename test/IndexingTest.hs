@@ -4,7 +4,7 @@ module IndexingTest
 
 import Control.Monad (liftM2)
 import Data.Either (isRight)
-import H3.Indexing (LatLng(LatLng), H3ErrorCodes(E_CELL_INVALID), latLngToCell, cellToLatLng, cellToBoundary)
+import H3.Indexing (LatLng(LatLng), latLngToCell, cellToLatLng, cellToBoundary)
 import H3.Miscellaneous (degsToRads, radsToDegs)
 import H3.Inspection (h3ToString, stringToH3)
 
