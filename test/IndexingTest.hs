@@ -16,7 +16,7 @@ tests :: [Test]
 tests =
     [ testGroup "LatLng To Cell"
         [ latLngToCellWithKnownValues
-        , testLatLngToCellWithCenterValues
+        , testLatLngToAddressWithCenterValues
         ]
     , testGroup "Cell To LatLng"
         [ cellToLatLngWithKnowValue
@@ -106,8 +106,8 @@ latLngTestValues =
   , ( 15, "8f0a00000000005", LatLng (64.436603) (89.573054) )
   ]
 
-testLatLngToCellWithCenterValues :: Test
-testLatLngToCellWithCenterValues = testProperty "Testing coordinate to address mapping with known center values" $
+testLatLngToAddressWithCenterValues :: Test
+testLatLngToAddressWithCenterValues = testProperty "Testing coordinate to address mapping with known center values" $
     either (const False) id testResult
     where
         testResult = and <$> mapM processRecord latLngTestValues
