@@ -4,12 +4,9 @@ module InspectionTest
 
 import Control.Monad (liftM2)
 import Data.List (sort)
--- import Data.Either (isRight)
 import H3.Indexing 
   ( LatLng(LatLng)
-  , latLngToCell
-  , H3ErrorCodes(E_CELL_INVALID)
-  {-, cellToLatLng-} )
+  , latLngToCell )
 import H3.Inspection 
   ( h3ToString
   , stringToH3
@@ -19,7 +16,6 @@ import H3.Inspection
   , isResClassIII
   , isPentagon
   , getIcosahedronFaces )
--- import H3.Miscellaneous (degsToRads, radsToDegs)
 
 import Test.Framework                       (Test, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
@@ -43,6 +39,9 @@ tests =
         ]
     , testGroup "Testing inspection methods with mock values"
         [ testGetResolution
+        , testIntToStringToInt
+        , testIsValidWithMockData
+        , testGetIcosahedronFacesWithMockData 
         ]
     ]
 
@@ -101,6 +100,20 @@ testGetIcosahedronFaces = testProperty "Testing getIcosahedronFaces" $
         actualResultE = sort <$> (stringToH3 "81743ffffffffff" >>= getIcosahedronFaces)
         expectedResultE = Right [3, 4, 8, 9, 13]
 
+testIntToString :: Test
+testIntToString = testProperty "Testing conversion from H3 index to cell address" $
+    actualValE == expectedValE
+    where
+      actualValE = h3ToString 599686042433355775 
+      expectedValE = Right "85283473fffffff"
+
+testStringToInt :: Test
+testStringToInt = testProperty "Testing conversion from cell address to H3 index" $
+    actualValE == expectedValE
+    where
+      actualValE = stringToH3 "85283473fffffff"
+      expectedValE = Right 599686042433355775
+
 newtype Resolution = Resolution Int
   deriving (Eq, Show)
 
@@ -120,19 +133,25 @@ testGetResolution = testProperty "test resulution matches value used to get H3 i
     in 
     actualResE == expectedResE
 
-testIntToString :: Test
-testIntToString = testProperty "Testing conversion from H3 index to cell address" $
-    actualValE == expectedValE
-    where
-      inputVal = 599686042433355775 
-      actualValE = h3ToString inputVal
-      expectedValE = Right "85283473fffffff"
+testIntToStringToInt :: Test
+testIntToStringToInt = testProperty "test conversion from int to string and back to int" $ \(GenLatLng latLng) (Resolution res) ->
+    let h3indexE = latLngToCell latLng res
+        actualResultE = h3indexE >>= h3ToString >>= stringToH3 
+        expectedResultE = h3indexE
+    in 
+    actualResultE == expectedResultE
 
-testStringToInt :: Test
-testStringToInt = testProperty "Testing conversion from cell address to H3 index" $
-    actualValE == expectedValE
-    where
-      inputVal = "85283473fffffff"
-      actualValE = stringToH3 inputVal
-      expectedValE = Right 599686042433355775
+testIsValidWithMockData :: Test
+testIsValidWithMockData = testProperty "test isValidCell" $ \(GenLatLng latLng) (Resolution res) ->
+    let actualResultE = (/=0) . isValidCell <$> latLngToCell latLng res
+        expectedResultE = Right True
+    in 
+    actualResultE == expectedResultE
+
+testGetIcosahedronFacesWithMockData :: Test
+testGetIcosahedronFacesWithMockData = testProperty "test getIcosahedronFaces" $ \(GenLatLng latLng) (Resolution res) ->
+    let resultE = latLngToCell latLng res >>= getIcosahedronFaces >>= (return . checkList)
+        checkList = all (\val -> (-1) <= val && val <= 19)
+    in 
+    either (const False) id resultE
 
