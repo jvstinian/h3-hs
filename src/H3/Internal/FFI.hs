@@ -15,5 +15,6 @@ foreign import capi "h3/h3api.h degsToRads" degsToRads :: Double -> Double
 -- |radsToDegs converts from radians to degrees
 foreign import capi "h3/h3api.h radsToDegs" radsToDegs :: Double -> Double
 
+-- |isValidCell returns non-zero if this is a valid H3 cell index
 foreign import capi "h3/h3api.h isValidCell" isValidCell :: H3Index -> Int
 
