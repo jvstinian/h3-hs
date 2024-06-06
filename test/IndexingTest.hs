@@ -4,7 +4,7 @@ module IndexingTest
 
 import Control.Monad (liftM2)
 import Data.Either (isRight)
-import H3.Indexing (LatLng(LatLng), H3ErrorCodes(E_CELL_INVALID), latLngToCell, cellToLatLng, cellToBoundary)
+import H3.Indexing (LatLng(LatLng), latLngToCell, cellToLatLng, cellToBoundary)
 import H3.Miscellaneous (degsToRads, radsToDegs)
 import H3.Inspection (h3ToString, stringToH3)
 
@@ -20,7 +20,6 @@ tests =
         ]
     , testGroup "Cell To LatLng"
         [ cellToLatLngWithKnowValue
-        -- , testInvalidCellToLatLng
         , testAddressToLatLngWithCenterValues
         ]
     , testGroup "Cell To Boundary"
@@ -60,10 +59,9 @@ cellToLatLngWithKnowValue = testProperty "Testing known conversion from cell str
         check = either (const False) id (liftM2 (=~) latLngE expectedResultE)
 
 -- The following was taken from https://github.com/uber/h3/blob/master/tests/cli/cellToBoundary.txt
--- add_h3_cli_test(testCliCellToBoundary "cellToBoundary -c 8928342e20fffff" "POLYGON((-122.4990471431 37.4997389893, -122.4979805011 37.5014245698, -122.4992373065 37.5029321860, -122.5015607527 37.5027541980, -122.5026273256 37.5010686174, -122.5013705214 37.4995610248, -122.4990471431 37.4997389893))")
 -- Note that the CLI test lists 7 LatLng pairs in the polygon, where the first is identical to the last.
 -- The C API (through this Haskell binding) instead returns 6 LatLng values.
--- The Python package (though on <4) also returns 6 LatLng values.
+-- The Python package (though on h3 version <4) also returns 6 LatLng values.
 testCellToBoundary :: Test
 testCellToBoundary = testProperty "Testing known value of cell to boundary" $
     isRight actualResultE && lengthCheck && valCheck
@@ -78,23 +76,13 @@ testCellToBoundary = testProperty "Testing known value of cell to boundary" $
             , LatLng 37.5027541980 (-122.5015607527) 
             , LatLng 37.5010686174 (-122.5026273256)
             , LatLng 37.4995610248 (-122.5013705214) 
-            -- , LatLng 37.4997389893 (-122.4990471431) 
             ]
         expectedResultE = Right expectedBoundary
         lengthCheck = either (const False) id (liftM2 (\lls1 lls2 -> length lls1 == length lls2) actualResultE expectedResultE)
         valCheck = either (const False) id (liftM2 (\lls1 lls2 -> and (map (uncurry (=~)) (zip lls1 lls2)))  actualResultE expectedResultE)
         
--- TODO: Might need to drop this test
-testInvalidCellToLatLng :: Test
-testInvalidCellToLatLng = testProperty "Testing invalid cell value" $
-    latLngE == expectedResultE
-    where
-        latLngRadsToDegs (LatLng lat lng) = LatLng (radsToDegs lat) (radsToDegs lng)
-        latLngE = (stringToH3 "asdf") >>= cellToLatLng >>= (return . latLngRadsToDegs)
-        expectedResultE = Left E_CELL_INVALID
-
--- The following are taken from the files "rand*cells.txt" located at 
--- https://github.com/uber/h3/blob/master/tests/inputfiles/rand15cells.txt
+-- The following are taken from the files "*centers.txt" located at 
+-- https://github.com/uber/h3/blob/master/tests/inputfiles
 latLngTestValues :: [(Int, String, LatLng)]
 latLngTestValues =
   [ ( 8, "880a000001fffff", LatLng (64.436597) (89.573069) )
@@ -120,7 +108,7 @@ latLngTestValues =
 
 testLatLngToCellWithCenterValues :: Test
 testLatLngToCellWithCenterValues = testProperty "Testing coordinate to address mapping with known center values" $
-    isRight testResult && either (const False) id testResult
+    either (const False) id testResult
     where
         testResult = and <$> mapM processRecord latLngTestValues
         -- For a single latitude-longitude pair, convert to radians, get the cell, then convert to cell address, and finally 
@@ -130,7 +118,7 @@ testLatLngToCellWithCenterValues = testProperty "Testing coordinate to address m
 
 testAddressToLatLngWithCenterValues :: Test
 testAddressToLatLngWithCenterValues = testProperty "Testing address to coordinate mapping with known center values" $
-    isRight testResult && either (const False) id testResult
+    either (const False) id testResult
     where
         testResult = and <$> mapM processRecord latLngTestValues
         -- For a single latitude-longitude pair, convert address to H3 index, then to coordinates, change from radians to degrees, 
@@ -157,4 +145,14 @@ testStringToInt = testProperty "Testing conversion from cell address to H3 index
       inputVal = "85283473fffffff"
       actualValE = stringToH3 inputVal
       expectedValE = Right 599686042433355775
+
+{- Move to InspectionTest
+testInvalidCellToLatLng :: Test
+testInvalidCellToLatLng = testProperty "Testing invalid cell value" $
+    latLngE == expectedResultE
+    where
+        latLngRadsToDegs (LatLng lat lng) = LatLng (radsToDegs lat) (radsToDegs lng)
+        latLngE = (stringToH3 "asdf") >>= cellToLatLng >>= (return . latLngRadsToDegs)
+        expectedResultE = Left E_CELL_INVALID
+-}
 
