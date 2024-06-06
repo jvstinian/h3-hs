@@ -64,11 +64,14 @@ library
     -- Modules exported by the library.
     exposed-modules:  
         H3.Miscellaneous
+        H3.Indexing
+        H3.Inspection
 
     -- Modules included in this library but not exported.
     other-modules:
-        H3.Internal.H3Api,
+        H3.Internal.H3Api
         H3.Internal.FFI
+        H3.Internal.Utils
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -121,6 +124,7 @@ test-suite h3-hs-test
     -- Modules included in this executable, other than Main.
     other-modules:
       MiscellaneousTest
+      IndexingTest
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
