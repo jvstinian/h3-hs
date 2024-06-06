@@ -27,7 +27,7 @@ latLngToCell coords = toEither . c2hs_latLngToCell coords
 cellToLatLng :: H3Index -> Either H3ErrorCodes LatLng
 cellToLatLng = toEither . c2hs_cellToLatLng
 
--- |Finds the boundary of the cell. 
+-- |Finds the boundary of the cell, returning a list of coordinates.
 cellToBoundary :: H3Index -> Either H3ErrorCodes [LatLng] 
 cellToBoundary = toEither . c2hs_cellToBoundary
 
