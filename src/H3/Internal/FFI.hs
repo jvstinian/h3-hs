@@ -12,7 +12,6 @@ module H3.Internal.FFI
   , hsPolygonToCells 
   ) where
 
--- import System.IO.Unsafe (unsafePerformIO)
 import Data.Word (Word32)
 import System.IO.Unsafe (unsafePerformIO)
 import Foreign.C.Types (CInt, CLong)
@@ -38,14 +37,19 @@ foreign import capi "h3/h3api.h radsToDegs" radsToDegs :: Double -> Double
 
 -- Inspection
 
+-- | Returns the resolution of the index.
 foreign import capi "h3/h3api.h getResolution" getResolution :: H3Index -> Int
 
+-- | Returns the base cell number of the index.
 foreign import capi "h3/h3api.h getBaseCellNumber" getBaseCellNumber :: H3Index -> Int
 
+-- | isValidCell returns non-zero if this is a valid H3 cell index
 foreign import capi "h3/h3api.h isValidCell" isValidCell :: H3Index -> Int
 
+-- | Returns non-zero if this index has a resolution with Class III orientation.
 foreign import capi "h3/h3api.h isResClassIII" isResClassIII :: H3Index -> Int
 
+-- | Returns non-zero if this index represents a pentagonal cell.
 foreign import capi "h3/h3api.h isPentagon" isPentagon :: H3Index -> Int
 
 foreign import capi "h3/h3api.h maxFaceCount" c_maxFaceCount :: H3Index -> Ptr CInt -> IO H3Error
