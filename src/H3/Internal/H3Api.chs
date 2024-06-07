@@ -120,6 +120,12 @@ allocaCStringLen fn = withCStringLen dummyString fnint
     where dummyString = replicate 17 '0'
           fnint (cstr, i) = fn (cstr, fromIntegral i)
 
+{- TODO: Remove in next MR
+peekCStringWithLen :: CString -> CULong -> IO String
+peekCStringWithLen = curry (peekCStringLen . ulongConvert)
+    where ulongConvert (cstr, ulong) = (cstr, fromIntegral ulong)
+-}
+
 peekCStringIgnoreLen :: CString -> CULong -> IO String
 peekCStringIgnoreLen cstr _ = peekCString cstr
 
