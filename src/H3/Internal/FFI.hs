@@ -72,21 +72,11 @@ hsGetIcosahedronFaces h3index =
         else return (out3error, [])
     else return (h3error, [])
 
+
 -- Regions
 
-foreign import capi "h3/h3api.h maxPolygonToCellsSize" cMaxPolygonToCellsSize :: Ptr CGeoPolygon -> Int -> Word32 -> Ptr CLong -> IO H3Error
 
-{-
-hsMaxPolygonToCellsSize :: GeoPolygon -> Int -> Word32 -> IO (H3Error, CLong)
-hsMaxPolygonToCellsSize poly res flags = do
-  cpolyPtr <- newCGeoPolygonPtr poly
-  out <- alloca $ \resultPtr -> do
-    h3error <- cMaxPolygonToCellsSize cpolyPtr res flags resultPtr
-    result <- peek resultPtr
-    return (h3error, result)
-  destroyCGeoPolygonPtr cpolyPtr 
-  return out
--}
+foreign import capi "h3/h3api.h maxPolygonToCellsSize" cMaxPolygonToCellsSize :: Ptr CGeoPolygon -> Int -> Word32 -> Ptr CLong -> IO H3Error
 
 foreign import capi "h3/h3api.h polygonToCells" cPolygonToCells :: Ptr CGeoPolygon -> Int -> Word32 -> Ptr H3Index -> IO H3Error
 
