@@ -9,7 +9,7 @@ module H3.Internal.H3Api
   , c2hs_cellToBoundary
   , c2hs_h3ToString
   , c2hs_stringToH3
-  , GeoPolygon
+  , GeoPolygon(GeoPolygon)
   , CGeoPolygon
   , newCGeoPolygonPtr 
   , destroyCGeoPolygonPtr
@@ -43,6 +43,7 @@ type H3Error = Word32
 --  the numeric representation of the H3 index in Haskell
 type H3Index = Word64
 
+-- | Latitude and longitude in radians
 data LatLng = LatLng 
     { lat :: Double -- ^ Latitude
     , lng :: Double -- ^ Longitude
@@ -63,13 +64,13 @@ instance Storable LatLng where
 -- |LatLngPtr which is needed for the c2hs fun hooks
 {# pointer *LatLng as LatLngPtr -> LatLng #}
 
-peekAsH3Index :: Ptr CULong -> IO Word64
-peekAsH3Index ptr = fromIntegral <$> peek ptr
+peekH3Index :: Ptr CULong -> IO Word64
+peekH3Index ptr = fromIntegral <$> peek ptr
 
 {#fun pure latLngToCell as c2hs_latLngToCell
       { with*   `LatLng',
                 `Int',
-        alloca- `H3Index' peekAsH3Index*
+        alloca- `H3Index' peekH3Index*
       } -> `H3Error' fromIntegral #}
 
 {#fun pure cellToLatLng as c2hs_cellToLatLng
@@ -80,9 +81,10 @@ peekAsH3Index ptr = fromIntegral <$> peek ptr
 maxCellBndryVerts :: Int
 maxCellBndryVerts = {# const MAX_CELL_BNDRY_VERTS #}
 
+-- | Cell boundary as a list of latitude and longitude pairs, represented as a C type using a pointer
 data CellBoundary = CellBoundary
-    { numVerts :: CInt
-    , verts :: Ptr LatLng
+    { callboundary_numVerts :: CInt
+    , callboundary_verts :: Ptr LatLng
     }
   deriving (Eq, Show)
 
@@ -121,6 +123,12 @@ allocaCStringLen fn = withCStringLen dummyString fnint
     where dummyString = replicate 17 '0'
           fnint (cstr, i) = fn (cstr, fromIntegral i)
 
+{- TODO: Remove in next MR
+peekCStringWithLen :: CString -> CULong -> IO String
+peekCStringWithLen = curry (peekCStringLen . ulongConvert)
+    where ulongConvert (cstr, ulong) = (cstr, fromIntegral ulong)
+-}
+
 peekCStringIgnoreLen :: CString -> CULong -> IO String
 peekCStringIgnoreLen cstr _ = peekCString cstr
 
@@ -131,7 +139,7 @@ peekCStringIgnoreLen cstr _ = peekCString cstr
 
 {#fun pure stringToH3 as c2hs_stringToH3
       { withCString* `String',
-        alloca- `H3Index' peekAsH3Index*
+        alloca- `H3Index' peekH3Index*
       } -> `H3Error' fromIntegral #}
 
 -- Regions
@@ -147,21 +155,20 @@ instance Storable CGeoLoop where
     alignment _ = {# alignof GeoLoop #}
     peek p = liftM2 CGeoLoop ({# get GeoLoop->numVerts #} p)
                              ({# get GeoLoop->verts #} p)
-    poke p (CGeoLoop numVerts0 verts0) = do
-        {# set GeoLoop->numVerts #} p numVerts0
-        {# set GeoLoop->verts #} p verts0
+    poke p (CGeoLoop numVerts verts) = do
+        {# set GeoLoop->numVerts #} p numVerts
+        {# set GeoLoop->verts #} p verts
 
 newCGeoLoop :: GeoLoop -> IO CGeoLoop
 newCGeoLoop gl =
   if length gl > 0
   then do
     ptr <- newArray gl
-    return $ CGeoLoop numVerts0 ptr
+    return $ CGeoLoop numVerts ptr
   else return $ CGeoLoop 0 nullPtr
-  where numVerts0 = fromIntegral $ length gl
-  -- newArray gl >>= (return . CGeoLoop (length gl))
+  where numVerts = fromIntegral $ length gl
 
-{- NOTE: Apparently this is not needed currently
+{- NOTE: Apparently this is not needed currently.  Remove in next MR.
 newCGeoLoopPtr :: GeoLoop -> IO (Ptr CGeoLoop)
 newCGeoLoopPtr gl = do
   cgl <- newCGeoLoop gl
@@ -171,13 +178,13 @@ newCGeoLoopPtr gl = do
 -}
 
 destroyCGeoLoop :: CGeoLoop -> IO ()
-destroyCGeoLoop (CGeoLoop numVerts0 vertsPtr) = 
-  if numVerts0 > 0
+destroyCGeoLoop (CGeoLoop numVerts vertsPtr) = 
+  if numVerts > 0
   then do
     free vertsPtr
   else return ()
 
-{- NOTE: Apparently this is not needed currently
+{- NOTE: Apparently this is not needed currently.  Remove in next MR.
 destroyCGeoLoopPtr :: Ptr CGeoLoop -> IO ()
 destroyCGeoLoopPtr ptr = do
   peek ptr >>= destroyCGeoLoop
@@ -194,21 +201,23 @@ data CGeoPolygon = CGeoPolygon
 instance Storable CGeoPolygon where
     sizeOf _ = {# sizeof GeoPolygon #}
     alignment _ = {# alignof GeoPolygon #}
-    peek p = liftM3 CGeoPolygon {- ({# get GeoPolygon->geoloop #} p) -} (peekExterior p)
+    peek p = liftM3 CGeoPolygon (peekExterior p)
                                 ({# get GeoPolygon->numHoles #} p)
                                 (castPtr <$> {# get GeoPolygon->holes #} p)
         where peekExterior p0 = liftM2 CGeoLoop ({# get GeoPolygon->geoloop.numVerts #} p0) ({# get GeoPolygon->geoloop.verts #} p0)
-    poke p (CGeoPolygon (CGeoLoop _numVerts _verts) numHoles holes) = do
-        {# set GeoPolygon->geoloop.numVerts #} p _numVerts
-        {# set GeoPolygon->geoloop.verts #} p _verts
+    poke p (CGeoPolygon (CGeoLoop numVerts verts) numHoles holes) = do
+        {# set GeoPolygon->geoloop.numVerts #} p numVerts
+        {# set GeoPolygon->geoloop.verts #} p verts
         {# set GeoPolygon->numHoles #} p numHoles
         {# set GeoPolygon->holes #} p (castPtr holes)
 
+-- |A GeoLoop is defined as a list of LatLng in Haskell
 type GeoLoop = [LatLng]
 
+-- |A GeoPolygon has an exterior and interior holes, the exterior and each interior hole being a GeoLoop
 data GeoPolygon = GeoPolygon
-   { geopoly_exterior :: GeoLoop
-   , geopoly_holes :: [GeoLoop]
+   { geopoly_exterior :: GeoLoop -- ^ Exterior of polygon
+   , geopoly_holes :: [GeoLoop]  -- ^ List of interior holes of polygon
    }
   deriving (Eq, Show)
 
@@ -232,8 +241,6 @@ newCGeoPolygonPtr gp = do
 
 destroyCGeoPolygon :: CGeoPolygon -> IO ()
 destroyCGeoPolygon (CGeoPolygon ext numHoles holesPtr) = do
-  -- geoloops <- peekArray (fromIntegral numHoles) holesPtr
-  -- mapM_ destroyCGeoLoop geoloops
   if numHoles > 0
   then do
     peekArray (fromIntegral numHoles) holesPtr >>= mapM_ destroyCGeoLoop 
@@ -248,9 +255,7 @@ destroyCGeoPolygonPtr ptr = do
 
 data CLinkedLatLng = CLinkedLatLng
     { clinkedlatlng_vertex :: LatLng
-    --  clinkedlatlng_lat :: Double
-    --, clinkedlatlng_lng :: Double
-    , clinkedlatlng_next :: Ptr CLinkedLatLng -- () # NOTE: Had this before, not sure why
+    , clinkedlatlng_next :: Ptr CLinkedLatLng
     }
   deriving (Show)
 
@@ -262,7 +267,6 @@ extractLatLng ptr | ptr /= nullPtr = processPtr ptr
               followingValues <- extractLatLng nextptr
               return $ vertex : followingValues
 
--- Trying the following instead
 instance Storable CLinkedLatLng where
     sizeOf _ = {# sizeof LinkedLatLng #}
     alignment _ = {# alignof LinkedLatLng #}
@@ -271,19 +275,10 @@ instance Storable CLinkedLatLng where
         CDouble llng <- {# get LinkedLatLng->vertex.lng #} p
         llptr <- {# get LinkedLatLng->next #} p
         return $ CLinkedLatLng (LatLng llat llng) (castPtr llptr)
-    {-
-    peek p = CLinkedLatLng <$> {# get LinkedLatLng->vertex #} p
-                           <*> {# get LinkedLatLng->next #} p
-    -}
-    poke p (CLinkedLatLng {-vert-} (LatLng latval lngval) next) = do
-        {# set LinkedLatLng->vertex.lat #} p {-vert-} (CDouble latval)
-        {# set LinkedLatLng->vertex.lng #} p {-vert-} (CDouble lngval)
+    poke p (CLinkedLatLng (LatLng latval lngval) next) = do
+        {# set LinkedLatLng->vertex.lat #} p (CDouble latval)
+        {# set LinkedLatLng->vertex.lng #} p (CDouble lngval)
         {# set LinkedLatLng->next #} p (castPtr next)
-    {-
-    poke p (CLinkedLatLng vert next) = do
-        {# set LinkedLatLng->vertex #} p vert
-        {# set LinkedLatLng->next #} p next
-    -}
 
 data CLinkedGeoLoop = CLinkedGeoLoop 
     { clinkedgeoloop_first :: Ptr CLinkedLatLng
@@ -334,7 +329,6 @@ extractGeoPolygons ptr | ptr /= nullPtr = processPtr ptr
 instance Storable CLinkedGeoPolygon where
     sizeOf _ = {# sizeof LinkedGeoPolygon #}
     alignment _ = {# alignof LinkedGeoPolygon #}
-    -- peek p = liftM3 CLinkedGeoPolygon ({# get LinkedGeoPolygon->first #} p) ({# get LinkedGeoPolygon->last #} p) ({# get LinkedGeoPolygon->next #} p)
     peek p = liftM3 CLinkedGeoPolygon (castPtr <$> ({# get LinkedGeoPolygon->first #} p)) 
                                       (castPtr <$> ({# get LinkedGeoPolygon->last #} p))
                                       (castPtr <$> ({# get LinkedGeoPolygon->next #} p))
@@ -342,10 +336,6 @@ instance Storable CLinkedGeoPolygon where
         {# set LinkedGeoPolygon->first #} p (castPtr clgfirst)
         {# set LinkedGeoPolygon->last #} p (castPtr clglast)
         {# set LinkedGeoPolygon->next #} p (castPtr clgnext)
-    -- poke p (CLinkedGeoPolygon clgfirst clglast clgnext) = do
-    --     {# set LinkedGeoPolygon->first #} p clgfirst
-    --     {# set LinkedGeoPolygon->last #} p clglast
-    --     {# set LinkedGeoPolygon->next #} p clgnext
 
 withArrayInput :: (Storable a) => [a] -> ((Ptr a, CInt) -> IO b) -> IO b
 withArrayInput as fn =
@@ -353,25 +343,7 @@ withArrayInput as fn =
     where convertInt (ptr, i) = (ptr, fromIntegral i)
           fnadj = fn . convertInt
 
-{-
-{# pointer *LinkedGeoPolygon as LinkedGeoPolygonFPtr foreign finalizer destroyLinkedMultiPolygon -> CLinkedGeoPolygon #}
--}
-
-{- NOTE: The following did not work
-{#fun pure cellsToLinkedMultiPolygon as c2hs_cellsToLinkedMultiPolygon
-      { withArrayInput* `[H3Index]'&,
-        withForeignPtr* `LinkedGeoPolygonFPtr' -- TODO: This is actually an output
-      } -> `H3Error' fromIntegral #}
--}
-
-{- I don't think this worked either.  I don't think this set up the finalizer.
-{#fun pure cellsToLinkedMultiPolygon as c2hs_cellsToLinkedMultiPolygon
-      { withArrayInput* `[H3Index]'&,
-        alloca- `LinkedGeoPolygonFPtr' newForeignPtr_*
-      } -> `H3Error' fromIntegral #}
--}
-
-{- Original attempt
+{- TODO: Original attempt.  Remove in next PR.
 newPolygonFPtr :: Ptr CLinkedGeoPolygon -> IO LinkedGeoPolygonFPtr
 newPolygonFPtr ptr = do
     fptr <- newForeignPtr destroyLinkedMultiPolygon ptr
@@ -399,7 +371,7 @@ foreign import ccall "h3/h3api.h &destroyLinkedMultiPolygon"
 
 {# pointer *LinkedGeoPolygon as LinkedGeoPolygonFPtr foreign -> CLinkedGeoPolygon #}
 
-{#fun pure cellsToLinkedMultiPolygon as c2hs_cellsToLinkedMultiPolygon2
+{#fun pure cellsToLinkedMultiPolygon as c2hs_cellsToLinkedMultiPolygon
       { withH3IndexArray* `[H3Index]'&,
         `LinkedGeoPolygonFPtr'
       } -> `H3Error' fromIntegral #}
@@ -408,17 +380,13 @@ hsCellsToLinkedMultiPolygon :: [H3Index] -> (H3Error, [GeoPolygon])
 hsCellsToLinkedMultiPolygon h3indexs = unsafePerformIO $ do
   fptr <- mallocForeignPtr
   addForeignPtrFinalizer destroyLinkedMultiPolygon fptr 
-  let h3error = c2hs_cellsToLinkedMultiPolygon2 h3indexs fptr
+  let h3error = c2hs_cellsToLinkedMultiPolygon h3indexs fptr
   if h3error == 0
   then do
     polys <- withForeignPtr fptr extractGeoPolygons
     return (h3error, polys)
   else return (h3error, [])
 
-{-
-hsCellsToLinkedMultiPolygon :: [H3Index] -> (H3Error, [GeoPolygon])
-hsCellsToLinkedMultiPolygon h3indexs = $ hsCellsToLinkedMultiPolygonIO h3indexs
--}
 
 -- Miscellaneous 
 
