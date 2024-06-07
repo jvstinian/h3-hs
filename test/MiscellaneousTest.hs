@@ -14,6 +14,7 @@ import H3.Miscellaneous
   , getHexagonEdgeLengthAvgM
   , cellAreaKm2
   , cellAreaM2
+  , getNumCells
   )
 import Control.Monad (liftM2)
 import TestTypes     (GenLatLng(GenLatLng), Resolution(Resolution))
@@ -31,6 +32,7 @@ tests =
     , testGroup "Check counts"
         [ testGetRes0CellsReturns122Cells
         , testGetPentagonsReturns12Cells 
+        , testGetNumCells 
         ]
     , testGroup "Check unit conversions"
         [ testHexagonAreaAvgConversion
@@ -101,28 +103,6 @@ testMonotonicityWithResolution fnname fn = testProperty (concat ["monotonicity o
           listIsMonotonicallyDecreasing as = and $ map (\(prev, next) -> prev > next) (zip (init as) (tail as))
           actualResultE = listIsMonotonicallyDecreasing <$> mapM fn resolutions
 
-{-
-testGetHexagonAvgAreaKm2Monotonicity :: Test
-testGetHexagonAvgAreaKm2Monotonicity = testProperty "monotonicity of getHexagonAreaAvgKm2 with resolution" $ do
-    either (const False) id actualResultE
-    where resolutions = [0..15]
-          listIsMonotonicallyDecreasing as = and $ map (\(prev, next) -> prev > next) (zip (init as) (tail as))
-          actualResultE = listIsMonotonicallyDecreasing <$> mapM getHexagonAreaAvgKm2 resolutions
-
-testGetHexagonAreaAvgKm2Monotonicity :: Test
-testGetHexagonAreaAvgKm2Monotonicity = testMonotonicityWithResolution "getHexagonAreaAvgKm2" getHexagonAreaAvgKm2
--}
-
-{-
-testMonotonicityForLatLngWithResolution :: (Ord b) => String -> (H3Index -> Either err b) -> Test
-testMonotonicityForLatLngWithResolution fnname fn = testProperty (concat ["monotonicity of ", fnname, " with resolution at random coordinates"]) $ \(GenLatLng latLng) (Resolution res) ->
-    let h3indexE = latLngToCell latLng res
-        fnappl x = h3indexE >>= flip fn x
-        listIsMonotonicallyDecreasing as = and $ map (\(prev, next) -> prev > next) (zip (init as) (tail as))
-        actualResultE = listIsMonotonicallyDecreasing <$> mapM fnappl resolutions
-    in either (const False) id actualResultE
--}
-
 testCellAreaConversion :: Test
 testCellAreaConversion = testProperty "unit conversion from cellAreaKm2 to cellAreaM2" $ \(GenLatLng latLng) (Resolution res) ->
     let h3indexE = latLngToCell latLng res
@@ -133,6 +113,15 @@ testCellAreaConversion = testProperty "unit conversion from cellAreaKm2 to cellA
         valuesApproximatelyEqual a b = abs (a - b) < tol
         checkCellValue = liftM2 valuesApproximatelyEqual actualResultE expectedResultE 
     in either (const False) id checkCellValue
+
+testGetNumCells :: Test
+testGetNumCells = testProperty "getNumCells returns number of cells specified in document" $ do
+    either (const False) id checkValuesE
+    where resolutions = [0..15]
+          expectedNumCells res = 2 + 120 * (7 ^ res)
+          expectedResultE = Right (map expectedNumCells resolutions)
+          actualResultE = mapM getNumCells resolutions
+          checkValuesE = liftM2 (==) actualResultE expectedResultE 
 
 -- TODO: Set up tests of the following
 -- Check that the conversion from km2 to m2 is satisfied by 
@@ -145,10 +134,6 @@ testCellAreaConversion = testProperty "unit conversion from cellAreaKm2 to cellA
 -- edgeLengthKm :: H3Index -> Either H3ErrorCodes Double
 -- and 
 -- edgeLengthM :: H3Index -> Either H3ErrorCodes Double
--- 
--- For generated LatLng (converted to H3Index), check that 
--- edgeLengthKm :: H3Index -> Either H3ErrorCodes Double
--- decreases with resolution
 -- 
 -- Verify the closed formula for 
 -- getNumCells :: Int -> Either H3ErrorCodes Int64
