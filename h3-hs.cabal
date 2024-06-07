@@ -66,6 +66,7 @@ library
         H3.Miscellaneous
         H3.Indexing
         H3.Inspection
+        H3.Regions
 
     -- Modules included in this library but not exported.
     other-modules:
@@ -126,6 +127,8 @@ test-suite h3-hs-test
       MiscellaneousTest
       IndexingTest
       InspectionTest
+      RegionsTest
+      TestTypes
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
