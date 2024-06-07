@@ -1,13 +1,14 @@
 module H3.Regions
-  ( polygonsToCells
+  ( polygonToCells
   , cellsToLinkedMultiPolygon
+  , GeoPolygon(GeoPolygon)
   ) where
 
 import Data.Word (Word32)
 import H3.Internal.H3Api 
   ( H3ErrorCodes
   , H3Index
-  , GeoPolygon
+  , GeoPolygon(GeoPolygon)
   , hsCellsToLinkedMultiPolygon 
   )
 import H3.Internal.FFI 
@@ -17,8 +18,8 @@ import H3.Internal.Utils (toEither)
 
 -- | polygonToCells takes a given GeoJSON-like GeoPolygon data structure and fills it with the hexagons that are contained in the GeoPolygon.  
 --   Containment is determined by the cells' centroids.
-polygonsToCells :: GeoPolygon -> Int -> Word32 -> Either H3ErrorCodes [H3Index]
-polygonsToCells poly res = toEither . hsPolygonToCells poly res
+polygonToCells :: GeoPolygon -> Int -> Word32 -> Either H3ErrorCodes [H3Index]
+polygonToCells poly res = toEither . hsPolygonToCells poly res
 
 -- | Creates GeoPolygon describing the outline(s) of a set of hexagons. Polygon outlines will follow GeoJSON MultiPolygon order: 
 --   Each polygon will have one outer loop, which is first in the list, followed by any holes.  

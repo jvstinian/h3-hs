@@ -9,7 +9,7 @@ module H3.Internal.H3Api
   , c2hs_cellToBoundary
   , c2hs_h3ToString
   , c2hs_stringToH3
-  , GeoPolygon
+  , GeoPolygon(GeoPolygon)
   , CGeoPolygon
   , newCGeoPolygonPtr 
   , destroyCGeoPolygonPtr
