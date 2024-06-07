@@ -3,8 +3,7 @@ module InspectionTest
     ) where
 
 import Data.List (sort)
-import H3.Indexing 
-  ( latLngToCell )
+import H3.Indexing (latLngToCell)
 import H3.Inspection 
   ( h3ToString
   , stringToH3
