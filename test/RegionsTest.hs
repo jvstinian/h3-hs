@@ -52,6 +52,6 @@ testPolygonToCells = testProperty "Testing polygonToCells" $ \(GenRadian lat) (G
 testCellsToLinkedMultiPolygon :: Test
 testCellsToLinkedMultiPolygon = testProperty "Testing cellsToLinkedMultiPolygon" $ \(GenLatLng coords) ->
     let resultE = latLngToCell coords 9 >>= (\h3index -> cellsToLinkedMultiPolygon [h3index])
-        hasAtLeastOneGeoPolygon = either (const False) ((>0) . length) resultE
+        hasAtLeastOneGeoPolygon = either (const False) (not . null) resultE
     in isRight resultE && hasAtLeastOneGeoPolygon
 
