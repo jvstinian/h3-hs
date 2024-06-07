@@ -127,6 +127,7 @@ test-suite h3-hs-test
       MiscellaneousTest
       IndexingTest
       InspectionTest
+      RegionsTest
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
