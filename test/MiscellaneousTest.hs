@@ -2,9 +2,7 @@ module MiscellaneousTest
     ( tests
     ) where
 
-import H3.Indexing 
-  ( H3Index
-  , latLngToCell )
+import H3.Indexing (latLngToCell)
 import H3.Miscellaneous 
   ( degsToRads
   , radsToDegs
@@ -36,7 +34,7 @@ tests =
         ]
     , testGroup "Check unit conversions"
         [ testHexagonAreaAvgConversion
-	, testCellAreaConversion
+        , testCellAreaConversion
         ]
     , testGroup "Check monotonicity"
         [ testMonotonicityWithResolution "getHexagonAreaAvgKm2" getHexagonAreaAvgKm2
@@ -119,7 +117,7 @@ testGetHexagonAreaAvgKm2Monotonicity = testMonotonicityWithResolution "getHexago
 testMonotonicityForLatLngWithResolution :: (Ord b) => String -> (H3Index -> Either err b) -> Test
 testMonotonicityForLatLngWithResolution fnname fn = testProperty (concat ["monotonicity of ", fnname, " with resolution at random coordinates"]) $ \(GenLatLng latLng) (Resolution res) ->
     let h3indexE = latLngToCell latLng res
-	fnappl x = h3indexE >>= flip fn x
+        fnappl x = h3indexE >>= flip fn x
         listIsMonotonicallyDecreasing as = and $ map (\(prev, next) -> prev > next) (zip (init as) (tail as))
         actualResultE = listIsMonotonicallyDecreasing <$> mapM fnappl resolutions
     in either (const False) id actualResultE
