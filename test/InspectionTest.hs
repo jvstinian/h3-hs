@@ -2,11 +2,8 @@ module InspectionTest
     ( tests
     ) where
 
-import Control.Monad (liftM2)
 import Data.List (sort)
-import H3.Indexing 
-  ( LatLng(LatLng)
-  , latLngToCell )
+import H3.Indexing (latLngToCell)
 import H3.Inspection 
   ( h3ToString
   , stringToH3
@@ -16,11 +13,12 @@ import H3.Inspection
   , isResClassIII
   , isPentagon
   , getIcosahedronFaces )
-
+import TestTypes 
+  ( GenLatLng(GenLatLng)
+  , Resolution(Resolution) )
 import Test.Framework                       (Test, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 
-import Test.QuickCheck                      (Arbitrary (..), chooseInt, choose)
 
 tests :: [Test]
 tests =
@@ -113,18 +111,6 @@ testStringToInt = testProperty "Testing conversion from cell address to H3 index
     where
       actualValE = stringToH3 "85283473fffffff"
       expectedValE = Right 599686042433355775
-
-newtype Resolution = Resolution Int
-  deriving (Eq, Show)
-
-instance Arbitrary Resolution where
-    arbitrary = Resolution <$> chooseInt (0, 15)
-
-newtype GenLatLng = GenLatLng LatLng
-  deriving (Eq, Show)
-
-instance Arbitrary GenLatLng where
-    arbitrary = GenLatLng <$> liftM2 LatLng (choose (-pi, pi)) (choose (-pi, pi))
 
 testGetResolution :: Test
 testGetResolution = testProperty "test resulution matches value used to get H3 index" $ \(GenLatLng latLng) (Resolution res) ->
