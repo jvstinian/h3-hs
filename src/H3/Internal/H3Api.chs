@@ -14,12 +14,27 @@ module H3.Internal.H3Api
   , newCGeoPolygonPtr 
   , destroyCGeoPolygonPtr
   , hsCellsToLinkedMultiPolygon
+  , c2hs_getHexagonAreaAvgKm2 
+  , c2hs_getHexagonAreaAvgM2 
+  , c2hs_cellAreaRads2
+  , c2hs_cellAreaKm2
+  , c2hs_cellAreaM2
+  , c2hs_getHexagonEdgeLengthAvgKm
+  , c2hs_getHexagonEdgeLengthAvgM
+  , c2hs_edgeLengthRads
+  , c2hs_edgeLengthKm
+  , c2hs_edgeLengthM
+  , c2hs_getNumCells
+  , greatCircleDistanceKm
+  , greatCircleDistanceM
+  , greatCircleDistanceRads
   ) where
 
 import Control.Monad (liftM2, liftM3)
+import Data.Int(Int64)
 import Data.Word (Word64, Word32)
 import System.IO.Unsafe (unsafePerformIO)
-import Foreign.C.Types (CULong, CInt, CDouble(CDouble))
+import Foreign.C.Types (CULong, CLong, CInt(CInt), CDouble(CDouble))
 import Foreign.Ptr (Ptr, castPtr, nullPtr)
 import Foreign.Marshal.Array (withArrayLen, peekArray, newArray)
 import Foreign.Marshal.Utils (with)
@@ -385,4 +400,89 @@ hsCellsToLinkedMultiPolygon h3indexs = unsafePerformIO $ do
     polys <- withForeignPtr fptr extractGeoPolygons
     return (h3error, polys)
   else return (h3error, [])
+
+
+-- Miscellaneous 
+
+
+peekDouble :: Ptr CDouble -> IO Double
+peekDouble ptr = cdoubleToDouble <$> peek ptr
+  where cdoubleToDouble (CDouble x) = x
+
+-- TODO: The following is similar to peekAsH3Index, so possibly need to DRY this up
+peekInt64 :: Ptr CLong -> IO Int64
+peekInt64 ptr = fromIntegral <$> peek ptr
+
+{#fun pure getHexagonAreaAvgKm2 as c2hs_getHexagonAreaAvgKm2 
+      { `Int',
+        alloca- `Double' peekDouble*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure getHexagonAreaAvgM2 as c2hs_getHexagonAreaAvgM2 
+      { `Int',
+        alloca- `Double' peekDouble*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure cellAreaRads2 as c2hs_cellAreaRads2
+      { fromIntegral `H3Index',
+        alloca- `Double' peekDouble*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure cellAreaKm2 as c2hs_cellAreaKm2
+      { fromIntegral `H3Index',
+        alloca- `Double' peekDouble*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure cellAreaM2 as c2hs_cellAreaM2
+      { fromIntegral `H3Index',
+        alloca- `Double' peekDouble*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure getHexagonEdgeLengthAvgKm as c2hs_getHexagonEdgeLengthAvgKm
+      { `Int',
+        alloca- `Double' peekDouble*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure getHexagonEdgeLengthAvgM as c2hs_getHexagonEdgeLengthAvgM
+      { `Int',
+        alloca- `Double' peekDouble*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure edgeLengthRads as c2hs_edgeLengthRads
+      { fromIntegral `H3Index',
+        alloca- `Double' peekDouble*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure edgeLengthKm as c2hs_edgeLengthKm
+      { fromIntegral `H3Index',
+        alloca- `Double' peekDouble*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure edgeLengthM as c2hs_edgeLengthM
+      { fromIntegral `H3Index',
+        alloca- `Double' peekDouble*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure getNumCells as c2hs_getNumCells
+      { `Int',
+        alloca- `Int64' peekInt64*
+      } -> `H3Error' fromIntegral #}
+
+-- | Gives the "great circle" or "haversine" distance between pairs of LatLng points (lat/lng pairs) in kilometers.
+{#fun pure greatCircleDistanceKm as greatCircleDistanceKm
+      { with* `LatLng',
+        with* `LatLng'
+      } -> `Double' #}
+
+-- | Gives the "great circle" or "haversine" distance between pairs of LatLng points (lat/lng pairs) in meters.
+{#fun pure greatCircleDistanceM as greatCircleDistanceM
+      { with* `LatLng',
+        with* `LatLng'
+      } -> `Double' #}
+
+-- | Gives the "great circle" or "haversine" distance between pairs of LatLng points (lat/lng pairs) in radians.
+{#fun pure greatCircleDistanceRads as greatCircleDistanceRads
+      { with* `LatLng',
+        with* `LatLng'
+      } -> `Double' #}
 
