@@ -112,8 +112,8 @@ foreign import capi "h3/h3api.h res0CellCount" cRes0CellCount :: IO Int
 
 foreign import capi "h3/h3api.h getRes0Cells" cGetRes0Cells :: Ptr H3Index -> IO H3Error
 
-hsGetRes0Cells :: IO (H3Error, [H3Index])
-hsGetRes0Cells = do
+hsGetRes0Cells :: (H3Error, [H3Index])
+hsGetRes0Cells = unsafePerformIO $ do
   cellCount <- cRes0CellCount
   allocaArray cellCount $ \resultPtr -> do
     h3error <- cGetRes0Cells resultPtr
@@ -124,8 +124,8 @@ foreign import capi "h3/h3api.h pentagonCount" cPentagonCount :: IO Int
 
 foreign import capi "h3/h3api.h getPentagons" cGetPentagons :: Int -> Ptr H3Index -> IO H3Error
 
-hsGetPentagons :: Int -> IO (H3Error, [H3Index])
-hsGetPentagons res = do
+hsGetPentagons :: Int -> (H3Error, [H3Index])
+hsGetPentagons res = unsafePerformIO $ do
   cellCount <- cPentagonCount
   allocaArray cellCount $ \resultPtr -> do
     h3error <- cGetPentagons res resultPtr

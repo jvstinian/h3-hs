@@ -1,5 +1,6 @@
 module H3.Indexing
   ( LatLng(LatLng)
+  , H3Index
   , H3ErrorCodes(..)
   , latLngToCell
   , cellToLatLng
