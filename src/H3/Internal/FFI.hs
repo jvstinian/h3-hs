@@ -28,7 +28,7 @@ import Foreign.C.Types (CInt, CLong)
 import Foreign.Ptr (Ptr)
 import Foreign.Storable (Storable(peek))
 import Foreign.Marshal.Alloc (alloca, free)
-import Foreign.Marshal.Array (allocaArray, peekArray, callocArray)
+import Foreign.Marshal.Array (allocaArray, withArray, peekArray, callocArray)
 import H3.Internal.H3Api 
   ( H3Index
   , H3Error
@@ -152,7 +152,7 @@ hsGridDiskUsingMethod diskMethod h3index k = do
     if sizeh3error == 0
     then do
       maxSize <- fromIntegral <$> peek maxSizePtr
-      allocaArray maxSize $ \resultPtr -> do
+      withArray (replicate maxSize 0) $ \resultPtr -> do
         h3error <- diskMethod h3index k resultPtr
         result <- peekArray maxSize resultPtr
         return (h3error, result)
@@ -204,7 +204,9 @@ hsGridDiskDistancesUnsafe origin = unsafePerformIO . hsGridDiskDistancesUsingMet
 foreign import capi "h3/h3api.h gridRingUnsafe" cGridRingUnsafe :: H3Index -> Int -> Ptr H3Index -> IO H3Error
 
 hsGridRingUnsafe :: H3Index -> Int -> (H3Error, [H3Index])
-hsGridRingUnsafe origin = unsafePerformIO . hsGridDiskUsingMethod cGridRingUnsafe origin
+hsGridRingUnsafe origin k = unsafePerformIO $ do
+  -- remove 0s from list of H3Index values
+  hsGridDiskUsingMethod cGridRingUnsafe origin k >>= (\(h3error, h3indexs) -> return (h3error, filter (/=0) h3indexs))
 
 foreign import capi "h3/h3api.h gridPathCellsSize" cGridPathCellsSize :: H3Index -> H3Index -> Ptr Int64 -> IO H3Error
 
