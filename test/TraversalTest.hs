@@ -2,12 +2,9 @@ module TraversalTest
     ( tests
     ) where
 
-import Data.Either (isRight)
 import Control.Monad (liftM2, join)
-import H3.Miscellaneous (degsToRads)
 import H3.Indexing 
-  ( LatLng(LatLng)
-  , latLngToCell
+  ( latLngToCell
   , H3ErrorCodes(E_FAILED)
   )
 import H3.Inspection
@@ -29,7 +26,6 @@ import H3.Traversal
 import TestTypes (GenLatLng(GenLatLng), Resolution(Resolution))
 import Test.Framework                       (Test, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
-import Test.QuickCheck                      (Arbitrary (..))
 
 tests :: [Test]
 tests =
@@ -40,6 +36,11 @@ tests =
     , testGroup "Adapting CLI tests for Traversal methods"
         [ testCellToLocalIjWithKnownValues
         , testLocalIjToCellWithKnownValues 
+        , testGridDiskWithKnownValues 
+        , testGridDiskDistancesWithKnownValues
+        , testGridDistanceWithKnownValues
+        , testGridPathCellsWithKnownValues
+        , testGridRingUnsafeWithKnownValues 
         ]
     ]
 
@@ -57,7 +58,7 @@ testCellToLocalIjAndBack = testProperty "Testing cellToLocalIj followed by local
         expectedH3indexE = latLngToCell latLng2 res
         coordE = join $ liftM2 cellToLocalIj h3indexE1 expectedH3indexE
         actualH3indexE = join $ liftM2 localIjToCell h3indexE1 coordE
-	compResultE = liftM2 (==) actualH3indexE expectedH3indexE
+        compResultE = liftM2 (==) actualH3indexE expectedH3indexE
     in either (==E_FAILED) id compResultE
 
 testCellToLocalIjWithKnownValues :: Test
@@ -77,11 +78,53 @@ testLocalIjToCellWithKnownValues = testProperty "CLI test for localIjToCell" $
           actualResultE = h3indexE1 >>= flip localIjToCell coordij
           expectedResultE = stringToH3 "8528342bfffffff"
 
--- TODO:
--- Port CLI tests for 
--- gridDisk
--- gridDiskDistances
--- gridDistance
--- gridPathCells
--- gridRing
+testGridDiskWithKnownValues :: Test
+testGridDiskWithKnownValues = testProperty "CLI test for gridDisk" $
+    actualResultE == expectedResultE
+    where h3indexE1 = stringToH3 "85283473fffffff"
+          k = 1
+          actualResultE = h3indexE1 >>= flip gridDisk k
+          expectedStrs = [ "85283473fffffff", "85283447fffffff", "8528347bfffffff"
+                         , "85283463fffffff", "85283477fffffff", "8528340ffffffff"
+                         , "8528340bfffffff" ]
+          expectedResultE = mapM stringToH3 expectedStrs
+
+testGridDiskDistancesWithKnownValues :: Test
+testGridDiskDistancesWithKnownValues = testProperty "CLI test for gridDiskDistances" $
+    actualResultE == expectedResultE
+    where h3indexE1 = stringToH3 "85283473fffffff"
+          k = 1
+          actualResultE = h3indexE1 >>= flip gridDiskDistances k
+          expectedStrs = [ "85283473fffffff", "85283447fffffff", "8528347bfffffff"
+                         , "85283463fffffff", "85283477fffffff", "8528340ffffffff"
+                         , "8528340bfffffff" ]
+          expectedDistances = [0] ++ replicate 6 1
+          expectedResultE = mapM stringToH3 expectedStrs >>= (\h3indices -> return (h3indices, expectedDistances))
+
+testGridDistanceWithKnownValues :: Test
+testGridDistanceWithKnownValues = testProperty "CLI test for gridDistance" $
+    actualResultE == expectedResultE
+    where h3indexE1 = stringToH3 "85283473fffffff"
+          h3indexE2 =  stringToH3 "8528342bfffffff"
+          actualResultE = join $ liftM2 gridDistance h3indexE1 h3indexE2
+          expectedResultE = Right 2
+
+testGridPathCellsWithKnownValues :: Test
+testGridPathCellsWithKnownValues = testProperty "CLI test for gridPathCells" $
+    actualResultE == expectedResultE
+    where h3indexE1 = stringToH3 "85283473fffffff"
+          h3indexE2 = stringToH3 "8528342bfffffff"
+          actualResultE = join $ liftM2 gridPathCells h3indexE1 h3indexE2
+          expectedStrs = [ "85283473fffffff", "85283477fffffff", "8528342bfffffff" ]
+          expectedResultE = mapM stringToH3 expectedStrs
+
+testGridRingUnsafeWithKnownValues :: Test
+testGridRingUnsafeWithKnownValues = testProperty "CLI test for gridRingUnsafe" $
+    actualResultE == expectedResultE
+    where h3indexE1 = stringToH3 "85283473fffffff"
+          k = 1
+          actualResultE = h3indexE1 >>= flip gridRingUnsafe k
+          expectedStrs = [ "8528340bfffffff", "85283447fffffff", "8528347bfffffff"
+                         , "85283463fffffff", "85283477fffffff", "8528340ffffffff" ]
+          expectedResultE = mapM stringToH3 expectedStrs
 
