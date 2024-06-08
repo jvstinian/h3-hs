@@ -152,6 +152,7 @@ hsGridDiskUsingMethod diskMethod h3index k = do
     if sizeh3error == 0
     then do
       maxSize <- fromIntegral <$> peek maxSizePtr
+      -- TODO: Perhaps set up a custom gridRingUnsafe method and revert the following back to allocaArray maxSize $ ...
       withArray (replicate maxSize 0) $ \resultPtr -> do
         h3error <- diskMethod h3index k resultPtr
         result <- peekArray maxSize resultPtr
