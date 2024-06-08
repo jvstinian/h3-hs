@@ -67,6 +67,7 @@ library
         H3.Indexing
         H3.Inspection
         H3.Regions
+        H3.Traversal
 
     -- Modules included in this library but not exported.
     other-modules:

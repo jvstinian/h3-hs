@@ -12,6 +12,13 @@ module H3.Internal.FFI
   , hsPolygonToCells 
   , hsGetRes0Cells
   , hsGetPentagons
+  , hsGridDisk
+  , hsGridDiskUnsafe
+  , hsGridDiskDistances 
+  , hsGridDiskDistancesSafe 
+  , hsGridDiskDistancesUnsafe
+  , hsGridRingUnsafe
+  , hsGridPathCells
   ) where
 
 import Data.Int (Int64)
@@ -154,8 +161,8 @@ hsGridDiskUsingMethod diskMethod h3index k = do
  
 foreign import capi "h3/h3api.h gridDisk" cGridDisk :: H3Index -> Int -> Ptr H3Index -> IO H3Error
 
-hsGridDisk :: H3Index -> Int -> IO (H3Error, [H3Index])
-hsGridDisk = hsGridDiskUsingMethod cGridDisk
+hsGridDisk :: H3Index -> Int -> (H3Error, [H3Index])
+hsGridDisk origin = unsafePerformIO . hsGridDiskUsingMethod cGridDisk origin
 
 {-do
   alloca $ \maxSizePtr -> do
@@ -173,9 +180,10 @@ hsGridDisk = hsGridDiskUsingMethod cGridDisk
 
 foreign import capi "h3/h3api.h gridDiskUnsafe" cGridDiskUnsafe :: H3Index -> Int -> Ptr H3Index -> IO H3Error
 
-hsGridDiskUnsafe = hsGridDiskUsingMethod cGridDiskUnsafe
+hsGridDiskUnsafe :: H3Index -> Int -> (H3Error, [H3Index])
+hsGridDiskUnsafe origin = unsafePerformIO . hsGridDiskUsingMethod cGridDiskUnsafe origin
 
-hsGridDiskDistancesUsingMethod :: (H3Index -> Int -> Ptr H3Index -> Ptr CInt -> IO H3Error) -> H3Index -> Int -> IO (H3Error, [H3Index], [Int])
+hsGridDiskDistancesUsingMethod :: (H3Index -> Int -> Ptr H3Index -> Ptr CInt -> IO H3Error) -> H3Index -> Int -> IO (H3Error, ([H3Index], [Int]))
 hsGridDiskDistancesUsingMethod diskDistanceMethod h3index k = do
   alloca $ \maxSizePtr -> do
     sizeh3error <- cMaxGridDiskSize k maxSizePtr
@@ -187,24 +195,24 @@ hsGridDiskDistancesUsingMethod diskDistanceMethod h3index k = do
           h3error <- diskDistanceMethod h3index k indexResultPtr distanceResultPtr
           indexResult <- peekArray maxSize indexResultPtr
           distanceResult <- map fromIntegral <$> peekArray maxSize distanceResultPtr
-          return (h3error, indexResult, distanceResult)
+          return (h3error, (indexResult, distanceResult))
     else do
-      return (sizeh3error, [], [])
+      return (sizeh3error, ([], []))
 
 foreign import capi "h3/h3api.h gridDiskDistances" cGridDiskDistances :: H3Index -> Int -> Ptr H3Index -> Ptr CInt -> IO H3Error
 
-hsGridDiskDistances :: H3Index -> Int -> IO (H3Error, [H3Index], [Int])
-hsGridDiskDistances = hsGridDiskDistancesUsingMethod cGridDiskDistances
+hsGridDiskDistances :: H3Index -> Int -> (H3Error, ([H3Index], [Int]))
+hsGridDiskDistances origin = unsafePerformIO . hsGridDiskDistancesUsingMethod cGridDiskDistances origin
 
 foreign import capi "h3/h3api.h gridDiskDistancesSafe" cGridDiskDistancesSafe :: H3Index -> Int -> Ptr H3Index -> Ptr CInt -> IO H3Error
 
-hsGridDiskDistancesSafe :: H3Index -> Int -> IO (H3Error, [H3Index], [Int])
-hsGridDiskDistancesSafe = hsGridDiskDistancesUsingMethod cGridDiskDistancesSafe
+hsGridDiskDistancesSafe :: H3Index -> Int -> (H3Error, ([H3Index], [Int]))
+hsGridDiskDistancesSafe origin = unsafePerformIO . hsGridDiskDistancesUsingMethod cGridDiskDistancesSafe origin
 
 foreign import capi "h3/h3api.h gridDiskDistancesUnsafe" cGridDiskDistancesUnsafe :: H3Index -> Int -> Ptr H3Index -> Ptr CInt -> IO H3Error
 
-hsGridDiskDistancesUnsafe :: H3Index -> Int -> IO (H3Error, [H3Index], [Int])
-hsGridDiskDistancesUnsafe = hsGridDiskDistancesUsingMethod cGridDiskDistancesUnsafe
+hsGridDiskDistancesUnsafe :: H3Index -> Int -> (H3Error, ([H3Index], [Int]))
+hsGridDiskDistancesUnsafe origin = unsafePerformIO . hsGridDiskDistancesUsingMethod cGridDiskDistancesUnsafe origin
 
 -- TODO: Skipping gridDisksUnsafe
 
@@ -212,16 +220,16 @@ hsGridDiskDistancesUnsafe = hsGridDiskDistancesUsingMethod cGridDiskDistancesUns
 
 foreign import capi "h3/h3api.h gridRingUnsafe" cGridRingUnsafe :: H3Index -> Int -> Ptr H3Index -> IO H3Error
 
-hsGridRingUnsafe :: H3Index -> Int -> IO (H3Error, [H3Index])
-hsGridRingUnsafe = hsGridDiskUsingMethod cGridRingUnsafe
+hsGridRingUnsafe :: H3Index -> Int -> (H3Error, [H3Index])
+hsGridRingUnsafe origin = unsafePerformIO . hsGridDiskUsingMethod cGridRingUnsafe origin
 
 foreign import capi "h3/h3api.h gridPathCellsSize" cGridPathCellsSize :: H3Index -> H3Index -> Ptr Int64 -> IO H3Error
 
 foreign import capi "h3/h3api.h gridPathCells" cGridPathCells :: H3Index -> H3Index -> Ptr H3Index -> IO H3Error
 
-hsGridPathCells :: H3Index -> H3Index -> IO (H3Error, [H3Index])
+hsGridPathCells :: H3Index -> H3Index -> (H3Error, [H3Index])
 hsGridPathCells origin h3 = 
-  alloca $ \sizePtr -> do
+  unsafePerformIO $ alloca $ \sizePtr -> do
     sizeh3error <- cGridPathCellsSize origin h3 sizePtr
     if sizeh3error == 0
     then do
