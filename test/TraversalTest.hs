@@ -4,8 +4,9 @@ module TraversalTest
 
 import Control.Monad (liftM2, join)
 import H3.Indexing 
-  ( latLngToCell
-  , H3ErrorCodes(E_FAILED)
+  ( H3Index
+  , latLngToCell
+  , H3ErrorCodes(E_FAILED, E_PENTAGON)
   )
 import H3.Inspection
   ( stringToH3
@@ -26,12 +27,21 @@ import H3.Traversal
 import TestTypes (GenLatLng(GenLatLng), Resolution(Resolution))
 import Test.Framework                       (Test, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
+import Test.QuickCheck                      (NonNegative(NonNegative), (==>))
+
+maxGridDistance :: Int
+maxGridDistance = 10
 
 tests :: [Test]
 tests =
     [ testGroup "Basic functionality check"
         [ testCellToLocalIj
         , testCellToLocalIjAndBack
+        , testGridDiskMethods "gridDisk" gridDisk
+        , testGridDiskMethods "gridDiskUnsafe" gridDiskUnsafe
+        , testGridDiskDistancesMethods maxGridDistance "gridDiskDistances" gridDiskDistances
+        , testGridDiskDistancesMethods maxGridDistance "gridDiskDistancesUnsafe" gridDiskDistancesUnsafe
+        , testGridDiskDistancesMethods maxGridDistance "gridDiskDistancesSafe" gridDiskDistancesSafe
         ]
     , testGroup "Adapting CLI tests for Traversal methods"
         [ testCellToLocalIjWithKnownValues
@@ -60,6 +70,19 @@ testCellToLocalIjAndBack = testProperty "Testing cellToLocalIj followed by local
         actualH3indexE = join $ liftM2 localIjToCell h3indexE1 coordE
         compResultE = liftM2 (==) actualH3indexE expectedH3indexE
     in either (==E_FAILED) id compResultE
+
+testGridDiskMethods :: String -> (H3Index -> Int -> Either H3ErrorCodes [H3Index]) -> Test
+testGridDiskMethods fnname fn = testProperty (concat ["Testing ", fnname]) $ \(GenLatLng latLng1) (Resolution res) (NonNegative k) ->
+    let h3indexE1 = latLngToCell latLng1 res
+        resultE = h3indexE1 >>= flip fn k
+    in either (==E_PENTAGON) (const True) resultE
+
+-- Note in the following that the first argument is used to restrict the distance considered
+testGridDiskDistancesMethods :: Int -> String -> (H3Index -> Int -> Either H3ErrorCodes ([H3Index], [Int])) -> Test
+testGridDiskDistancesMethods maxk fnname fn = testProperty (concat ["Testing ", fnname]) $ \(GenLatLng latLng1) (Resolution res) (NonNegative k) ->
+    let h3indexE1 = latLngToCell latLng1 res
+        resultE = h3indexE1 >>= flip fn k
+    in k <= maxk ==> either (==E_PENTAGON) (const True) resultE
 
 testCellToLocalIjWithKnownValues :: Test
 testCellToLocalIjWithKnownValues = testProperty "CLI test for cellToLocalIj " $
