@@ -14,6 +14,20 @@ module H3.Internal.H3Api
   , newCGeoPolygonPtr 
   , destroyCGeoPolygonPtr
   , hsCellsToLinkedMultiPolygon
+  , c2hs_getHexagonAreaAvgKm2 
+  , c2hs_getHexagonAreaAvgM2 
+  , c2hs_cellAreaRads2
+  , c2hs_cellAreaKm2
+  , c2hs_cellAreaM2
+  , c2hs_getHexagonEdgeLengthAvgKm
+  , c2hs_getHexagonEdgeLengthAvgM
+  , c2hs_edgeLengthRads
+  , c2hs_edgeLengthKm
+  , c2hs_edgeLengthM
+  , c2hs_getNumCells
+  , greatCircleDistanceKm
+  , greatCircleDistanceM
+  , greatCircleDistanceRads
   ) where
 
 import Control.Monad (liftM2, liftM3)
@@ -454,17 +468,20 @@ peekInt64 ptr = fromIntegral <$> peek ptr
         alloca- `Int64' peekInt64*
       } -> `H3Error' fromIntegral #}
 
-{#fun pure greatCircleDistanceKm as c2hs_greatCircleDistanceKm
+-- | Gives the "great circle" or "haversine" distance between pairs of LatLng points (lat/lng pairs) in kilometers.
+{#fun pure greatCircleDistanceKm as greatCircleDistanceKm
       { with* `LatLng',
         with* `LatLng'
       } -> `Double' #}
 
-{#fun pure greatCircleDistanceM as c2hs_greatCircleDistanceM
+-- | Gives the "great circle" or "haversine" distance between pairs of LatLng points (lat/lng pairs) in meters.
+{#fun pure greatCircleDistanceM as greatCircleDistanceM
       { with* `LatLng',
         with* `LatLng'
       } -> `Double' #}
 
-{#fun pure greatCircleDistanceRads as c2hs_greatCircleDistanceRads
+-- | Gives the "great circle" or "haversine" distance between pairs of LatLng points (lat/lng pairs) in radians.
+{#fun pure greatCircleDistanceRads as greatCircleDistanceRads
       { with* `LatLng',
         with* `LatLng'
       } -> `Double' #}
@@ -507,7 +524,7 @@ instance Storable CoordIJ where
       { fromIntegral `H3Index',
         with* `CoordIJ',
         `Word32',
-        alloca- `H3Index' peekAsH3Index*
+        alloca- `H3Index' peekH3Index*
       } -> `H3Error' fromIntegral #}
 
 
