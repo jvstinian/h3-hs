@@ -500,6 +500,7 @@ peekInt64 ptr = fromIntegral <$> peek ptr
         alloca- `Int64' peekInt64*
       } -> `H3Error' fromIntegral #}
 
+-- | Hexagon coordinates
 data CoordIJ = CoordIJ Int Int
   deriving (Eq, Show)
 
