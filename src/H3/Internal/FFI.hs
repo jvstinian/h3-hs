@@ -14,6 +14,7 @@ module H3.Internal.FFI
   , hsGetPentagons
   ) where
 
+import Data.Int (Int64)
 import Data.Word (Word32)
 import System.IO.Unsafe (unsafePerformIO)
 import Foreign.C.Types (CInt, CLong)

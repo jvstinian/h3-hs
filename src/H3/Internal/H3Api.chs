@@ -524,6 +524,6 @@ instance Storable CoordIJ where
       { fromIntegral `H3Index',
         with* `CoordIJ',
         `Word32',
-        alloca- `H3Index' peekAsH3Index*
+        alloca- `H3Index' peekH3Index*
       } -> `H3Error' fromIntegral #}
 
