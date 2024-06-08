@@ -15,6 +15,9 @@ import H3.Miscellaneous
   , cellAreaKm2
   , cellAreaM2
   , getNumCells
+  , greatCircleDistanceKm
+  , greatCircleDistanceM
+  , greatCircleDistanceRads
   )
 import Control.Monad (liftM2)
 import TestTypes     (GenLatLng(GenLatLng), Resolution(Resolution))
@@ -37,6 +40,8 @@ tests =
     , testGroup "Check unit conversions"
         [ testHexagonAreaAvgConversion
         , testCellAreaConversion
+        , testHexagonEdgeLengthAvgConversion
+        , testGreatCircleDistanceConversion 
         ]
     , testGroup "Check monotonicity"
         [ testMonotonicityWithResolution "getHexagonAreaAvgKm2" getHexagonAreaAvgKm2
@@ -44,6 +49,10 @@ tests =
         , testMonotonicityWithResolution "getHexagonEdgeLengthAvgKm" getHexagonEdgeLengthAvgKm
         , testMonotonicityWithResolution "getHexagonEdgeLengthAvgM" getHexagonEdgeLengthAvgM
         ]
+    , testGroup "Check distance"
+        [ testGreatCircleRadsNonzero 
+        ]
+
     ]
 
 eps :: RealFloat a => a
@@ -114,6 +123,17 @@ testCellAreaConversion = testProperty "unit conversion from cellAreaKm2 to cellA
         checkCellValue = liftM2 valuesApproximatelyEqual actualResultE expectedResultE 
     in either (const False) id checkCellValue
 
+testHexagonEdgeLengthAvgConversion :: Test
+testHexagonEdgeLengthAvgConversion = testProperty "unit conversion from getHexagonEdgeLengthAvgKm to getHexagonEdgeLengthAvgM" $ do
+    either (const False) and checkResolutionValues
+    where resolutions = [0..15]
+          convertKmToM = (*) 1000.0
+          actualResultE = mapM (fmap convertKmToM . getHexagonEdgeLengthAvgKm) resolutions
+          expectedResultE = mapM getHexagonEdgeLengthAvgM resolutions
+          tol = 1e-6
+          listsApproximatelyEqual as bs = zipWith (\a b -> abs (a - b) < tol) as bs
+          checkResolutionValues = liftM2 listsApproximatelyEqual actualResultE expectedResultE 
+
 testGetNumCells :: Test
 testGetNumCells = testProperty "getNumCells returns number of cells specified in document" $ do
     either (const False) id checkValuesE
@@ -123,27 +143,35 @@ testGetNumCells = testProperty "getNumCells returns number of cells specified in
           actualResultE = mapM getNumCells resolutions
           checkValuesE = liftM2 (==) actualResultE expectedResultE 
 
--- TODO: Set up tests of the following
--- Check that the conversion from km2 to m2 is satisfied by 
--- getHexagonEdgeLengthAvgKm :: Int -> Either H3ErrorCodes Double
--- and 
--- getHexagonEdgeLengthAvgM :: Int -> Either H3ErrorCodes Double
---
+{- TODO: This test needs to be fixed so as to use proper edges.  
+ -       We might need to move this test to the Directed Edges tests
 -- For generated LatLng (converted to H3Index), check that 
 -- the conversion from km to m is satisfied by  
 -- edgeLengthKm :: H3Index -> Either H3ErrorCodes Double
 -- and 
 -- edgeLengthM :: H3Index -> Either H3ErrorCodes Double
--- 
--- Verify the closed formula for 
--- getNumCells :: Int -> Either H3ErrorCodes Int64
---
--- For generated lat-long pairs, check the conversion between 
--- greatCircleDistanceKm 
--- and 
--- greatCircleDistanceM
---
--- Check that 
--- greatCircleDistanceRads
--- is greater than 0 when the coordinates differ
+testEdgeLengthConversion :: Test
+testEdgeLengthConversion = testProperty "unit conversion from edgeLengthKm to edgeLengthM" $ \(GenLatLng latLng) (Resolution res) ->
+    let h3indexE = latLngToCell latLng res
+        convertKmToM = (*) 1000.0
+        actualResultE = h3indexE >>= (fmap convertKmToM . edgeLengthKm)
+        expectedResultE = h3indexE >>= edgeLengthM
+        tol = 1e-2
+        valuesApproximatelyEqual a b = abs (a - b) < tol
+        checkCellValue = liftM2 valuesApproximatelyEqual actualResultE expectedResultE 
+    in either (const False) id checkCellValue
+-}
+
+testGreatCircleDistanceConversion :: Test
+testGreatCircleDistanceConversion = testProperty "unit conversion from greatCircleDistanceKm to greatCircleDistanceM" $ \(GenLatLng latLng1) (GenLatLng latLng2) ->
+    let actualResultE = 1000.0 * (greatCircleDistanceKm latLng1 latLng2)
+        expectedResultE = greatCircleDistanceM latLng1 latLng2
+        tol = eps
+        valuesApproximatelyEqual a b = abs (a - b) < tol
+    in valuesApproximatelyEqual actualResultE expectedResultE
+
+testGreatCircleRadsNonzero :: Test
+testGreatCircleRadsNonzero = testProperty "check coords are equal iff distance is 0" $ \(GenLatLng latLng1) (GenLatLng latLng2) ->
+    let diffRads = greatCircleDistanceRads latLng1 latLng2
+    in (latLng1 /= latLng2) == (diffRads > 0)
 
