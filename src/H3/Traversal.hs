@@ -1,5 +1,6 @@
 module H3.Traversal
-  ( gridDisk
+  ( CoordIJ(CoordIJ)
+  , gridDisk
   , gridDiskUnsafe
   , gridDiskDistances
   , gridDiskDistancesSafe
@@ -15,10 +16,10 @@ import Data.Int (Int64)
 import H3.Internal.H3Api 
   ( H3ErrorCodes
   , H3Index
+  , CoordIJ(CoordIJ)
   , c2hs_gridDistance
   , c2hs_cellToLocalIj
   , c2hs_localIjToCell
-  , CoordIJ
   )
 import H3.Internal.FFI 
   ( hsGridDisk
