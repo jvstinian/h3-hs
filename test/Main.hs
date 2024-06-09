@@ -7,6 +7,7 @@ import qualified RegionsTest (tests)
 import qualified MiscellaneousTest (tests)
 import qualified TraversalTest (tests)
 import qualified HierarchyTest (tests)
+import qualified DirectedEdgesTest (tests)
 
 main :: IO ()
 main = defaultMain 
@@ -16,4 +17,5 @@ main = defaultMain
     , testGroup "Miscellaneous" MiscellaneousTest.tests
     , testGroup "Traversal" TraversalTest.tests
     , testGroup "Hierarchy" HierarchyTest.tests
+    , testGroup "DirectedEdges" DirectedEdgesTest.tests
     ]
