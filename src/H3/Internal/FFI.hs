@@ -391,6 +391,7 @@ hsCellToVertexes origin = unsafePerformIO $ do
 
 foreign import capi "h3/h3api.h isValidVertex" cIsValidVertex :: H3Index -> Int
 
+-- | Returns True if the given index represents a valid H3 vertex.
 isValidVertex :: H3Index -> Bool
 isValidVertex = (/=0) . cIsValidVertex
 
