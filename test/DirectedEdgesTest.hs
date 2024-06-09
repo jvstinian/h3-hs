@@ -11,6 +11,9 @@ import H3.Indexing
 import H3.Inspection
   ( stringToH3
   )
+import H3.Traversal
+  ( gridRingUnsafe
+  )
 import H3.DirectedEdges
   ( isValidDirectedEdge 
   , directedEdgeToCells
@@ -32,7 +35,7 @@ tests =
         [ testDirectedEdgeToBoundaryHasAtLeastTwoPoints
         ]
     , testGroup "Check identities"
-        [ 
+        [ test1RingCellsAreNeighbors
         ]
     ]
 
@@ -49,7 +52,7 @@ testCellToCenterChildBackToParent = testProperty "Testing cellToCenterChild foll
 
 -- TODO: Add the following test cases
 --
--- areNeighborCells could be tested by applying gridRingUnsafe to a random point and checking that the indexes are neighbors
+-- areNeighborCells could be tested by applying gridRingUnsafe to a random point and checking that the indexes are neighbors - DONE
 --
 -- apply cellsToDirectedEdge to the results of gridRingUnsafe (or originToDirectedEdges) and then run isValidDirectedEdge
 --
@@ -62,8 +65,16 @@ testCellToCenterChildBackToParent = testProperty "Testing cellToCenterChild foll
 -- 
 -- originToDirectedEdges could be used instead of gridRingUnsafe to produce edges
 --
--- for directedEdgeToBoundary, try to identify a reasonable test, and fallback to a simple check of success if necessary
+-- for directedEdgeToBoundary, try to identify a reasonable test, and fallback to a simple check of success if necessary - DONE
 --
+
+test1RingCellsAreNeighbors :: Test
+test1RingCellsAreNeighbors = testProperty "Testing cells in 1-ring are neighbors" $ \(GenLatLng latLng) (Resolution res) ->
+    let h3indexE = latLngToCell latLng res
+        ringE = h3indexE >>= flip gridRingUnsafe 1
+	cellsAreNeighbors origin neighbors = and <$> (mapM (\neighbor -> areNeighborCells origin neighbor) neighbors)
+	resultE = join $ liftM2 cellsAreNeighbors h3indexE ringE
+    in (ringE == Left E_PENTAGON) || (resultE == Right True)
 
 -- It appears that directedEdgeToBoundary can return more than two points, for instance 
 -- with LatLng (-0.2265899477443667) (2.6202473683221132) and resolution 3
