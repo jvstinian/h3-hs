@@ -26,6 +26,8 @@ module H3.Internal.FFI
   , isValidDirectedEdge
   , hsDirectedEdgeToCells
   , hsOriginToDirectedEdges
+  , hsCellToVertexes 
+  , isValidVertex
   ) where
 
 import Data.Int (Int64)
@@ -376,8 +378,8 @@ hsOriginToDirectedEdges h3index = unsafePerformIO $ do
 
 foreign import capi "h3/h3api.h cellToVertexes" cCellToVertexes :: H3Index -> Ptr H3Index -> IO H3Error
 
-hsCellToVertexes :: H3Index -> IO (H3Error, [H3Index])
-hsCellToVertexes origin = do
+hsCellToVertexes :: H3Index -> (H3Error, [H3Index])
+hsCellToVertexes origin = unsafePerformIO $ do
   allocaArray vertexCount $ \outPtr -> do
     h3error <- cCellToVertexes origin outPtr
     if h3error == 0
@@ -391,6 +393,4 @@ foreign import capi "h3/h3api.h isValidVertex" cIsValidVertex :: H3Index -> Int
 
 isValidVertex :: H3Index -> Bool
 isValidVertex = (/=0) . cIsValidVertex
-
-
 
