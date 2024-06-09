@@ -27,28 +27,49 @@ import H3.Internal.FFI
 import H3.Internal.Utils (toEither)
 
 
+-- | Provides the parent index containing @cell@
 cellToParent :: H3Index -> Int -> Either H3ErrorCodes H3Index
 cellToParent cell = toEither . c2hs_cellToParent cell
 
+-- | Provides the center child index contained by @cell@ at resolution @childRes@.
 cellToCenterChild :: H3Index -> Int -> Either H3ErrorCodes H3Index
 cellToCenterChild cell = toEither . c2hs_cellToCenterChild cell
 
+-- | Returns the position of the child cell within an ordered list of all children of the 
+--   cell's parent at the specified resolution @parentRes@. 
+--   The order of the ordered list is the same as that returned by 'cellToChildren'. 
+--   This is the complement of 'childPosToCell'.
 cellToChildPos :: H3Index -> Int -> Either H3ErrorCodes Int64
 cellToChildPos child = toEither . c2hs_cellToChildPos child
 
+-- | Returns the child cell at a given position within an ordered list of all children of parent 
+--   at the specified resolution @childRes@. 
+--   The order of the ordered list is the same as that returned by 'cellToChildren'. 
+--   This is the complement of 'cellToChildPos'.
 childPosToCell :: Int64 -> H3Index -> Int -> Either H3ErrorCodes H3Index
 childPosToCell childPos parent = toEither . c2hs_childPosToCell childPos parent 
 
+-- | Returns children with the indexes contained by cell at resolution @childRes@.
 cellToChildren :: H3Index -> Int -> Either H3ErrorCodes [H3Index]
 cellToChildren cell = toEither . hsCellToChildren cell
 
+-- | Compacts the set @cellSet@ of indexes as best as possible.  
+--   Cells in @cellSet@ must all share the same resolution.
 compactCells :: [H3Index] -> Either H3ErrorCodes [H3Index]
 compactCells  = toEither . hsCompactCells 
 
 -- TODO: Should we keep the following?
+-- | Uncompacts the set @compactedSet@ of indexes to the resolution @res@.
+--   We are uncertain at the moment whether there is utility in being 
+--   able to specify the @maxCells@ value here, or if using @uncompactCellsSize@ 
+--   in the implementation is sufficient, as we have done in 
+--   'uncompactCellsUsingSize'.
 uncompactCells :: [H3Index] -> Int64 -> Int -> Either H3ErrorCodes [H3Index]
 uncompactCells compactedSet maxCells = toEither . hsUncompactCells compactedSet maxCells
 
+-- | Uncompacts the set @compactedSet@ of indexes to the resolution @res@, 
+--   calling @uncompactCellsSize@ to determine the size of the 
+--   list of uncompacted indices.
 uncompactCellsUsingSize :: [H3Index] -> Int -> Either H3ErrorCodes [H3Index]
 uncompactCellsUsingSize compactedSet = toEither . hsUncompactCellsUsingSize compactedSet
 
