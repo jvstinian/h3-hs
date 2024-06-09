@@ -41,6 +41,8 @@ module H3.Internal.H3Api
   , c2hs_getDirectedEdgeOrigin
   , c2hs_getDirectedEdgeDestination
   , c2hs_directedEdgeToBoundary
+  , c2hs_cellToVertex
+  , c2hs_vertexToLatLng
   ) where
 
 import Control.Monad (liftM2, liftM3)
@@ -611,7 +613,7 @@ peekBool intPtr = (/=0) <$> peek intPtr
 {#fun pure cellToVertex as c2hs_cellToVertex
       { fromIntegral `H3Index',
         `Int',
-        alloca- `H3Index' peekAsH3Index*
+        alloca- `H3Index' peekH3Index*
       } -> `H3Error' fromIntegral #}
 
 {#fun pure vertexToLatLng as c2hs_vertexToLatLng
