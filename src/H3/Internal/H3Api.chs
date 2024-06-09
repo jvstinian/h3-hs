@@ -28,6 +28,19 @@ module H3.Internal.H3Api
   , greatCircleDistanceKm
   , greatCircleDistanceM
   , greatCircleDistanceRads
+  , c2hs_gridDistance
+  , c2hs_cellToLocalIj
+  , c2hs_localIjToCell
+  , CoordIJ(CoordIJ)
+  , c2hs_cellToParent
+  , c2hs_cellToCenterChild
+  , c2hs_cellToChildPos
+  , c2hs_childPosToCell 
+  , c2hs_areNeighborCells
+  , c2hs_cellsToDirectedEdge
+  , c2hs_getDirectedEdgeOrigin
+  , c2hs_getDirectedEdgeDestination
+  , c2hs_directedEdgeToBoundary
   ) where
 
 import Control.Monad (liftM2, liftM3)
@@ -496,6 +509,7 @@ peekInt64 ptr = fromIntegral <$> peek ptr
         alloca- `Int64' peekInt64*
       } -> `H3Error' fromIntegral #}
 
+-- | Hexagon coordinates
 data CoordIJ = CoordIJ Int Int
   deriving (Eq, Show)
 
@@ -534,13 +548,13 @@ instance Storable CoordIJ where
 {#fun pure cellToParent as c2hs_cellToParent
       { fromIntegral `H3Index',
         `Int',
-        alloca- `H3Index' peekAsH3Index*
+        alloca- `H3Index' peekH3Index*
       } -> `H3Error' fromIntegral #}
 
 {#fun pure cellToCenterChild as c2hs_cellToCenterChild
       { fromIntegral `H3Index',
         `Int',
-        alloca- `H3Index' peekAsH3Index*
+        alloca- `H3Index' peekH3Index*
       } -> `H3Error' fromIntegral #}
 
 {#fun pure cellToChildPos as c2hs_cellToChildPos
@@ -553,7 +567,7 @@ instance Storable CoordIJ where
       { `Int64',
         fromIntegral `H3Index',
         `Int',
-        alloca- `H3Index' peekAsH3Index*
+        alloca- `H3Index' peekH3Index*
       } -> `H3Error' fromIntegral #}
 
 
@@ -572,17 +586,17 @@ peekBool intPtr = (/=0) <$> peek intPtr
 {#fun pure cellsToDirectedEdge as c2hs_cellsToDirectedEdge
       { fromIntegral `H3Index',
         fromIntegral `H3Index',
-        alloca- `H3Index' peekAsH3Index*
+        alloca- `H3Index' peekH3Index*
       } -> `H3Error' fromIntegral #}
 
 {#fun pure getDirectedEdgeOrigin as c2hs_getDirectedEdgeOrigin
       { fromIntegral `H3Index',
-        alloca- `H3Index' peekAsH3Index*
+        alloca- `H3Index' peekH3Index*
       } -> `H3Error' fromIntegral #}
 
 {#fun pure getDirectedEdgeDestination as c2hs_getDirectedEdgeDestination
       { fromIntegral `H3Index',
-        alloca- `H3Index' peekAsH3Index*
+        alloca- `H3Index' peekH3Index*
       } -> `H3Error' fromIntegral #}
 
 {#fun pure directedEdgeToBoundary as c2hs_directedEdgeToBoundary
