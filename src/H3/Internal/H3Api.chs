@@ -28,6 +28,10 @@ module H3.Internal.H3Api
   , greatCircleDistanceKm
   , greatCircleDistanceM
   , greatCircleDistanceRads
+  , c2hs_gridDistance
+  , c2hs_cellToLocalIj
+  , c2hs_localIjToCell
+  , CoordIJ(CoordIJ)
   ) where
 
 import Control.Monad (liftM2, liftM3)
@@ -496,6 +500,7 @@ peekInt64 ptr = fromIntegral <$> peek ptr
         alloca- `Int64' peekInt64*
       } -> `H3Error' fromIntegral #}
 
+-- | Hexagon coordinates
 data CoordIJ = CoordIJ Int Int
   deriving (Eq, Show)
 
