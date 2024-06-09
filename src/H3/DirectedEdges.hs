@@ -33,10 +33,10 @@ originToDirectedEdges :: H3Index -> Either H3ErrorCodes [H3Index]
 originToDirectedEdges = toEither . hsOriginToDirectedEdges
 
 areNeighborCells :: H3Index -> H3Index -> Either H3ErrorCodes Bool
-areNeighborCells = toEither . c2hs_areNeighborCells
+areNeighborCells origin = toEither . c2hs_areNeighborCells origin
 
 cellsToDirectedEdge :: H3Index -> H3Index -> Either H3ErrorCodes H3Index
-cellsToDirectedEdge = toEither . c2hs_cellsToDirectedEdge
+cellsToDirectedEdge origin = toEither . c2hs_cellsToDirectedEdge origin 
 
 getDirectedEdgeOrigin :: H3Index -> Either H3ErrorCodes H3Index
 getDirectedEdgeOrigin = toEither . c2hs_getDirectedEdgeOrigin 

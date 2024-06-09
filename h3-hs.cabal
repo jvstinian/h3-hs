@@ -69,6 +69,7 @@ library
         H3.Regions
         H3.Traversal
         H3.Hierarchy
+        H3.DirectedEdges
 
     -- Modules included in this library but not exported.
     other-modules:
