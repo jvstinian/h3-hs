@@ -19,6 +19,10 @@ module H3.Internal.FFI
   , hsGridDiskDistancesUnsafe
   , hsGridRingUnsafe
   , hsGridPathCells
+  , hsCellToChildren
+  , hsCompactCells 
+  , hsUncompactCells 
+  , hsUncompactCellsUsingSize 
   ) where
 
 import Data.Int (Int64)
@@ -239,8 +243,8 @@ foreign import capi "h3/h3api.h cellToChildrenSize" cCellToChildrenSize :: H3Ind
 
 foreign import capi "h3/h3api.h cellToChildren" cCellToChildren :: H3Index -> Int -> Ptr H3Index -> IO H3Error
 
-hsCellToChildren :: H3Index -> Int -> IO (H3Error, [H3Index])
-hsCellToChildren cell childRes = do
+hsCellToChildren :: H3Index -> Int -> (H3Error, [H3Index])
+hsCellToChildren cell childRes = unsafePerformIO $ do
   alloca $ \sizePtr -> do
     sizeh3error <- cCellToChildrenSize cell childRes sizePtr
     if sizeh3error == 0
@@ -259,8 +263,8 @@ hsCellToChildren cell childRes = do
 -- reduces the benefit of c2hs fun hooks
 foreign import capi "h3/h3api.h compactCells" cCompactCells :: Ptr H3Index -> Ptr H3Index -> Int64 -> IO H3Error
 
-hsCompactCells :: [H3Index] -> IO (H3Error, [H3Index])
-hsCompactCells cellSet = do
+hsCompactCells :: [H3Index] -> (H3Error, [H3Index])
+hsCompactCells cellSet = unsafePerformIO $ do
   withArray cellSet $ \cellSetPtr -> do
     let size = length cellSet
     allocaArray size $ \compactedSetPtr -> do
@@ -286,8 +290,9 @@ hsUncompactCellsSize compactedSet res = do
 
 foreign import capi "h3/h3api.h uncompactCells" cUncompactCells :: Ptr H3Index -> Int64 -> Ptr H3Index -> Int64 -> Int -> IO H3Error
 
-hsUncompactCells :: [H3Index] -> Int64 -> Int -> IO (H3Error, [H3Index])
-hsUncompactCells compactedSet maxCells res = do
+-- TODO: Do we need the following?
+hsUncompactCells :: [H3Index] -> Int64 -> Int -> (H3Error, [H3Index])
+hsUncompactCells compactedSet maxCells res = unsafePerformIO $ do
   let maxCellsInt = fromIntegral maxCells
   withArrayLen compactedSet $ \numCells compactedSetPtr -> do
     allocaArray maxCellsInt $ \cellSetPtr -> do
@@ -298,8 +303,8 @@ hsUncompactCells compactedSet maxCells res = do
         return (h3error, cellSet)
       else return (h3error, [])
 
-hsUncompactCellsUsingSize :: [H3Index] -> Int -> IO (H3Error, [H3Index])
-hsUncompactCellsUsingSize compactedSet res = do
+hsUncompactCellsUsingSize :: [H3Index] -> Int -> (H3Error, [H3Index])
+hsUncompactCellsUsingSize compactedSet res = unsafePerformIO $ do
   -- TODO: Can we just call hsUncompactCellsSize compactedSet res?
   withArrayLen compactedSet $ \numCells compactedSetPtr -> do
     (sizeh3error, maxCells) <- alloca $ \maxCellsPtr -> do
