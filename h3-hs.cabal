@@ -70,6 +70,7 @@ library
         H3.Traversal
         H3.Hierarchy
         H3.DirectedEdges
+        H3.Vertexes
 
     -- Modules included in this library but not exported.
     other-modules:

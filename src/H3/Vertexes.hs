@@ -19,10 +19,11 @@ import H3.Internal.FFI
 import H3.Internal.Utils (toEither)
 
 cellToVertex :: H3Index -> Int -> Either H3ErrorCodes H3Index
-cellToVertex origin = toEither . cellToVertex origin 
+cellToVertex origin = toEither . c2hs_cellToVertex origin 
 
 vertexToLatLng :: H3Index -> Either H3ErrorCodes LatLng
 vertexToLatLng = toEither . c2hs_vertexToLatLng 
 
-cellToVertexes :: H3Index -> (H3Error, [H3Index])
+cellToVertexes :: H3Index -> Either H3ErrorCodes [H3Index]
 cellToVertexes = toEither . hsCellToVertexes
+
