@@ -5,6 +5,8 @@ import qualified IndexingTest (tests)
 import qualified InspectionTest (tests)
 import qualified RegionsTest (tests)
 import qualified MiscellaneousTest (tests)
+import qualified TraversalTest (tests)
+import qualified HierarchyTest (tests)
 
 main :: IO ()
 main = defaultMain 
@@ -12,4 +14,6 @@ main = defaultMain
     , testGroup "Inspection" InspectionTest.tests
     , testGroup "Regions" RegionsTest.tests
     , testGroup "Miscellaneous" MiscellaneousTest.tests
+    , testGroup "Traversal" TraversalTest.tests
+    , testGroup "Hierarchy" HierarchyTest.tests
     ]
