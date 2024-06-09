@@ -23,6 +23,9 @@ module H3.Internal.FFI
   , hsCompactCells 
   , hsUncompactCells 
   , hsUncompactCellsUsingSize 
+  , isValidDirectedEdge
+  , hsDirectedEdgeToCells
+  , hsOriginToDirectedEdges
   ) where
 
 import Data.Int (Int64)
@@ -344,8 +347,8 @@ isValidDirectedEdge = (/=0) . cIsValidDirectedEdge
 
 foreign import capi "h3/h3api.h directedEdgeToCells" cDirectedEdgeToCells :: H3Index -> Ptr H3Index -> IO H3Error
 
-hsDirectedEdgeToCells :: H3Index -> IO (H3Error, [H3Index])
-hsDirectedEdgeToCells h3index = do
+hsDirectedEdgeToCells :: H3Index -> (H3Error, [H3Index])
+hsDirectedEdgeToCells h3index = unsafePerformIO $ do
   allocaArray 2 $ \originDestinationPtr -> do
     h3error <- cDirectedEdgeToCells h3index originDestinationPtr 
     if h3error == 0
@@ -356,8 +359,8 @@ hsDirectedEdgeToCells h3index = do
 
 foreign import capi "h3/h3api.h originToDirectedEdges" cOriginToDirectedEdges :: H3Index -> Ptr H3Index -> IO H3Error
 
-hsOriginToDirectedEdges :: H3Index -> IO (H3Error, [H3Index])
-hsOriginToDirectedEdges h3index = do
+hsOriginToDirectedEdges :: H3Index -> (H3Error, [H3Index])
+hsOriginToDirectedEdges h3index = unsafePerformIO $ do
   allocaArray edgeCount $ \edgesPtr -> do
     h3error <- cOriginToDirectedEdges h3index edgesPtr
     if h3error == 0
