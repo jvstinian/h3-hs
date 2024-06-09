@@ -12,15 +12,23 @@ module H3.Internal.FFI
   , hsPolygonToCells 
   , hsGetRes0Cells
   , hsGetPentagons
+  , hsGridDisk
+  , hsGridDiskUnsafe
+  , hsGridDiskDistances 
+  , hsGridDiskDistancesSafe 
+  , hsGridDiskDistancesUnsafe
+  , hsGridRingUnsafe
+  , hsGridPathCells
   ) where
 
+import Data.Int (Int64)
 import Data.Word (Word32)
 import System.IO.Unsafe (unsafePerformIO)
 import Foreign.C.Types (CInt, CLong)
 import Foreign.Ptr (Ptr)
 import Foreign.Storable (Storable(peek))
 import Foreign.Marshal.Alloc (alloca, free)
-import Foreign.Marshal.Array (allocaArray, peekArray, callocArray)
+import Foreign.Marshal.Array (allocaArray, withArray, peekArray, callocArray)
 import H3.Internal.H3Api 
   ( H3Index
   , H3Error
@@ -131,4 +139,95 @@ hsGetPentagons res = unsafePerformIO $ do
     h3error <- cGetPentagons res resultPtr
     result <- peekArray cellCount resultPtr
     return (h3error, result)
+
+
+-- Traversals
+
+foreign import capi "h3/h3api.h maxGridDiskSize" cMaxGridDiskSize :: Int -> Ptr Int64 -> IO H3Error
+
+hsGridDiskUsingMethod :: (H3Index -> Int -> Ptr H3Index -> IO H3Error) -> H3Index -> Int -> IO (H3Error, [H3Index])
+hsGridDiskUsingMethod diskMethod h3index k = do
+  alloca $ \maxSizePtr -> do
+    sizeh3error <- cMaxGridDiskSize k maxSizePtr
+    if sizeh3error == 0
+    then do
+      maxSize <- fromIntegral <$> peek maxSizePtr
+      -- TODO: Perhaps set up a custom gridRingUnsafe method and revert the following back to allocaArray maxSize $ ...
+      withArray (replicate maxSize 0) $ \resultPtr -> do
+        h3error <- diskMethod h3index k resultPtr
+        result <- peekArray maxSize resultPtr
+        return (h3error, result)
+    else do
+      return (sizeh3error, [])
+ 
+foreign import capi "h3/h3api.h gridDisk" cGridDisk :: H3Index -> Int -> Ptr H3Index -> IO H3Error
+
+hsGridDisk :: H3Index -> Int -> (H3Error, [H3Index])
+hsGridDisk origin = unsafePerformIO . hsGridDiskUsingMethod cGridDisk origin
+
+foreign import capi "h3/h3api.h gridDiskUnsafe" cGridDiskUnsafe :: H3Index -> Int -> Ptr H3Index -> IO H3Error
+
+hsGridDiskUnsafe :: H3Index -> Int -> (H3Error, [H3Index])
+hsGridDiskUnsafe origin = unsafePerformIO . hsGridDiskUsingMethod cGridDiskUnsafe origin
+
+hsGridDiskDistancesUsingMethod :: (H3Index -> Int -> Ptr H3Index -> Ptr CInt -> IO H3Error) -> H3Index -> Int -> IO (H3Error, ([H3Index], [Int]))
+hsGridDiskDistancesUsingMethod diskDistanceMethod h3index k = do
+  alloca $ \maxSizePtr -> do
+    sizeh3error <- cMaxGridDiskSize k maxSizePtr
+    if sizeh3error == 0
+    then do
+      maxSize <- fromIntegral <$> peek maxSizePtr
+      allocaArray maxSize $ \indexResultPtr -> do
+        allocaArray maxSize $ \distanceResultPtr -> do
+          h3error <- diskDistanceMethod h3index k indexResultPtr distanceResultPtr
+          indexResult <- peekArray maxSize indexResultPtr
+          distanceResult <- map fromIntegral <$> peekArray maxSize distanceResultPtr
+          return (h3error, (indexResult, distanceResult))
+    else do
+      return (sizeh3error, ([], []))
+
+foreign import capi "h3/h3api.h gridDiskDistances" cGridDiskDistances :: H3Index -> Int -> Ptr H3Index -> Ptr CInt -> IO H3Error
+
+hsGridDiskDistances :: H3Index -> Int -> (H3Error, ([H3Index], [Int]))
+hsGridDiskDistances origin = unsafePerformIO . hsGridDiskDistancesUsingMethod cGridDiskDistances origin
+
+foreign import capi "h3/h3api.h gridDiskDistancesSafe" cGridDiskDistancesSafe :: H3Index -> Int -> Ptr H3Index -> Ptr CInt -> IO H3Error
+
+hsGridDiskDistancesSafe :: H3Index -> Int -> (H3Error, ([H3Index], [Int]))
+hsGridDiskDistancesSafe origin = unsafePerformIO . hsGridDiskDistancesUsingMethod cGridDiskDistancesSafe origin
+
+foreign import capi "h3/h3api.h gridDiskDistancesUnsafe" cGridDiskDistancesUnsafe :: H3Index -> Int -> Ptr H3Index -> Ptr CInt -> IO H3Error
+
+hsGridDiskDistancesUnsafe :: H3Index -> Int -> (H3Error, ([H3Index], [Int]))
+hsGridDiskDistancesUnsafe origin = unsafePerformIO . hsGridDiskDistancesUsingMethod cGridDiskDistancesUnsafe origin
+
+-- We assume the gridRingUnsafe method also expects an array of size maxGridDiskSize
+foreign import capi "h3/h3api.h gridRingUnsafe" cGridRingUnsafe :: H3Index -> Int -> Ptr H3Index -> IO H3Error
+
+hsGridRingUnsafe :: H3Index -> Int -> (H3Error, [H3Index])
+hsGridRingUnsafe origin k = unsafePerformIO $ do
+  -- remove 0s from list of H3Index values
+  hsGridDiskUsingMethod cGridRingUnsafe origin k >>= (\(h3error, h3indexs) -> return (h3error, filter (/=0) h3indexs))
+
+foreign import capi "h3/h3api.h gridPathCellsSize" cGridPathCellsSize :: H3Index -> H3Index -> Ptr Int64 -> IO H3Error
+
+foreign import capi "h3/h3api.h gridPathCells" cGridPathCells :: H3Index -> H3Index -> Ptr H3Index -> IO H3Error
+
+hsGridPathCells :: H3Index -> H3Index -> (H3Error, [H3Index])
+hsGridPathCells origin h3 = 
+  unsafePerformIO $ alloca $ \sizePtr -> do
+    sizeh3error <- cGridPathCellsSize origin h3 sizePtr
+    if sizeh3error == 0
+    then do
+      size <- fromIntegral <$> peek sizePtr
+      allocaArray size $ \resultPtr -> do
+        h3error <- cGridPathCells origin h3 resultPtr
+        result <- peekArray size resultPtr
+        return (h3error, result)
+    else do
+      return (sizeh3error, [])
+
+-- Note: We are skipping the binding of gridDisksUnsafe at this time, 
+--       as we are not certain about the sizing of the output array of H3Index values 
+--       at this time.
 

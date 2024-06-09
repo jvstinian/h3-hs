@@ -28,6 +28,10 @@ module H3.Internal.H3Api
   , greatCircleDistanceKm
   , greatCircleDistanceM
   , greatCircleDistanceRads
+  , c2hs_gridDistance
+  , c2hs_cellToLocalIj
+  , c2hs_localIjToCell
+  , CoordIJ(CoordIJ)
   ) where
 
 import Control.Monad (liftM2, liftM3)
@@ -485,4 +489,46 @@ peekInt64 ptr = fromIntegral <$> peek ptr
       { with* `LatLng',
         with* `LatLng'
       } -> `Double' #}
+
+
+-- Traversals
+
+
+{#fun pure gridDistance as c2hs_gridDistance
+      { fromIntegral `H3Index',
+        fromIntegral `H3Index',
+        alloca- `Int64' peekInt64*
+      } -> `H3Error' fromIntegral #}
+
+-- | Hexagon coordinates
+data CoordIJ = CoordIJ Int Int
+  deriving (Eq, Show)
+
+instance Storable CoordIJ where
+    sizeOf _ = {# sizeof CoordIJ #}
+    alignment _ = {# alignof CoordIJ #}
+    peek p = do
+      _i <- fromIntegral <$> {# get CoordIJ->i #} p
+      _j <- fromIntegral <$> {# get CoordIJ->j #} p
+      return $ CoordIJ _i _j
+    poke p (CoordIJ _i _j) = do
+        {# set CoordIJ->i #} p (fromIntegral _i)
+        {# set CoordIJ->j #} p (fromIntegral _j)
+
+-- |CoordIJ which is needed for the c2hs fun hooks
+{# pointer *CoordIJ as CoordIJPtr -> CoordIJ #}
+
+{#fun pure cellToLocalIj as c2hs_cellToLocalIj
+      { fromIntegral `H3Index',
+        fromIntegral `H3Index',
+        `Word32',
+        alloca- `CoordIJ' peek*
+      } -> `H3Error' fromIntegral #}
+
+{#fun pure localIjToCell as c2hs_localIjToCell
+      { fromIntegral `H3Index',
+        with* `CoordIJ',
+        `Word32',
+        alloca- `H3Index' peekH3Index*
+      } -> `H3Error' fromIntegral #}
 
