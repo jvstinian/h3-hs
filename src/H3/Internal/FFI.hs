@@ -19,6 +19,9 @@ module H3.Internal.FFI
   , hsGridDiskDistancesUnsafe
   , hsGridRingUnsafe
   , hsGridPathCells
+  , hsCellToChildren
+  , hsCompactCells 
+  , hsUncompactCells
   ) where
 
 import Data.Int (Int64)
@@ -28,7 +31,7 @@ import Foreign.C.Types (CInt, CLong)
 import Foreign.Ptr (Ptr)
 import Foreign.Storable (Storable(peek))
 import Foreign.Marshal.Alloc (alloca, free)
-import Foreign.Marshal.Array (allocaArray, withArray, peekArray, callocArray)
+import Foreign.Marshal.Array (allocaArray, withArray, peekArray, callocArray, withArray, withArrayLen)
 import H3.Internal.H3Api 
   ( H3Index
   , H3Error
@@ -230,4 +233,95 @@ hsGridPathCells origin h3 =
 -- Note: We are skipping the binding of gridDisksUnsafe at this time, 
 --       as we are not certain about the sizing of the output array of H3Index values 
 --       at this time.
+
+
+-- Hierarchy
+
+
+foreign import capi "h3/h3api.h cellToChildrenSize" cCellToChildrenSize :: H3Index -> Int -> Ptr Int64 -> IO H3Error
+
+foreign import capi "h3/h3api.h cellToChildren" cCellToChildren :: H3Index -> Int -> Ptr H3Index -> IO H3Error
+
+hsCellToChildren :: H3Index -> Int -> (H3Error, [H3Index])
+hsCellToChildren cell childRes = unsafePerformIO $ do
+  alloca $ \sizePtr -> do
+    sizeh3error <- cCellToChildrenSize cell childRes sizePtr
+    if sizeh3error == 0
+    then do
+      size <- fromIntegral <$> peek sizePtr
+      allocaArray size $ \resultPtr -> do
+        h3error <- cCellToChildren cell childRes resultPtr
+        if h3error == 0
+        then do
+          result <- peekArray size resultPtr
+          return (h3error, result)
+        else return (h3error, [])
+    else return (sizeh3error, [])
+
+-- Normally a method like compactCells would be in H3Api.chs, but the order of the arguments 
+-- reduces the benefit of c2hs fun hooks
+foreign import capi "h3/h3api.h compactCells" cCompactCells :: Ptr H3Index -> Ptr H3Index -> Int64 -> IO H3Error
+
+hsCompactCells :: [H3Index] -> (H3Error, [H3Index])
+hsCompactCells cellSet = unsafePerformIO $ do
+  withArray cellSet $ \cellSetPtr -> do
+    let size = length cellSet
+    allocaArray size $ \compactedSetPtr -> do
+      h3error <- cCompactCells cellSetPtr compactedSetPtr (fromIntegral size)
+      if h3error == 0
+      then do
+        result <- peekArray size compactedSetPtr
+        return (h3error, result)
+      else return (h3error, [])
+
+foreign import capi "h3/h3api.h uncompactCellsSize" cUncompactCellsSize :: Ptr H3Index -> Int64 -> Int -> Ptr Int64 -> IO H3Error
+
+foreign import capi "h3/h3api.h uncompactCells" cUncompactCells :: Ptr H3Index -> Int64 -> Ptr H3Index -> Int64 -> Int -> IO H3Error
+
+{- TODO: Remove
+hsUncompactCellsSize :: [H3Index] -> Int -> IO (H3Error, Int64)
+hsUncompactCellsSize compactedSet res = do
+  withArrayLen compactedSet $ \numCells compactedSetPtr -> do
+    alloca $ \maxCellsPtr -> do
+      h3error <- cUncompactCellsSize compactedSetPtr (fromIntegral numCells) res maxCellsPtr
+      if h3error == 0
+      then do
+        size <- peek maxCellsPtr
+        return (h3error, size)
+      else return (h3error, 0)
+
+hsUncompactCells :: [H3Index] -> Int64 -> Int -> (H3Error, [H3Index])
+hsUncompactCells compactedSet maxCells res = unsafePerformIO $ do
+  let maxCellsInt = fromIntegral maxCells
+  withArrayLen compactedSet $ \numCells compactedSetPtr -> do
+    allocaArray maxCellsInt $ \cellSetPtr -> do
+      h3error <- cUncompactCells compactedSetPtr (fromIntegral numCells) cellSetPtr maxCells res
+      if h3error == 0
+      then do
+        cellSet <- peekArray maxCellsInt cellSetPtr
+        return (h3error, cellSet)
+      else return (h3error, [])
+-}
+
+hsUncompactCells :: [H3Index] -> Int -> (H3Error, [H3Index])
+hsUncompactCells compactedSet res = unsafePerformIO $ do
+  withArrayLen compactedSet $ \numCells compactedSetPtr -> do
+    (sizeh3error, maxCells) <- alloca $ \maxCellsPtr -> do
+      sizeh3error <- cUncompactCellsSize compactedSetPtr (fromIntegral numCells) res maxCellsPtr
+      if sizeh3error == 0
+      then do
+        size <- peek maxCellsPtr
+        return (sizeh3error, size)
+      else return (sizeh3error, 0)
+    if sizeh3error == 0
+    then do
+      let maxCellsInt = fromIntegral maxCells
+      allocaArray maxCellsInt $ \cellSetPtr -> do
+        h3error <- cUncompactCells compactedSetPtr (fromIntegral numCells) cellSetPtr maxCells res
+        if h3error == 0
+        then do
+          cellSet <- peekArray maxCellsInt cellSetPtr
+          return (h3error, cellSet)
+        else return (h3error, [])
+    else return (sizeh3error, [])
 

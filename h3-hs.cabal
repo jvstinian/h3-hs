@@ -68,6 +68,7 @@ library
         H3.Inspection
         H3.Regions
         H3.Traversal
+        H3.Hierarchy
 
     -- Modules included in this library but not exported.
     other-modules:
@@ -130,6 +131,7 @@ test-suite h3-hs-test
       InspectionTest
       RegionsTest
       TraversalTest
+      HierarchyTest
       TestTypes
 
     -- LANGUAGE extensions used by modules in this package.
