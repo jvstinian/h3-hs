@@ -22,7 +22,6 @@ module H3.Internal.FFI
   , hsCellToChildren
   , hsCompactCells 
   , hsUncompactCells 
-  , hsUncompactCellsUsingSize 
   , isValidDirectedEdge
   , hsDirectedEdgeToCells
   , hsOriginToDirectedEdges
@@ -282,6 +281,9 @@ hsCompactCells cellSet = unsafePerformIO $ do
 
 foreign import capi "h3/h3api.h uncompactCellsSize" cUncompactCellsSize :: Ptr H3Index -> Int64 -> Int -> Ptr Int64 -> IO H3Error
 
+foreign import capi "h3/h3api.h uncompactCells" cUncompactCells :: Ptr H3Index -> Int64 -> Ptr H3Index -> Int64 -> Int -> IO H3Error
+
+{- TODO: Remove
 hsUncompactCellsSize :: [H3Index] -> Int -> IO (H3Error, Int64)
 hsUncompactCellsSize compactedSet res = do
   withArrayLen compactedSet $ \numCells compactedSetPtr -> do
@@ -293,9 +295,6 @@ hsUncompactCellsSize compactedSet res = do
         return (h3error, size)
       else return (h3error, 0)
 
-foreign import capi "h3/h3api.h uncompactCells" cUncompactCells :: Ptr H3Index -> Int64 -> Ptr H3Index -> Int64 -> Int -> IO H3Error
-
--- TODO: Do we need the following?
 hsUncompactCells :: [H3Index] -> Int64 -> Int -> (H3Error, [H3Index])
 hsUncompactCells compactedSet maxCells res = unsafePerformIO $ do
   let maxCellsInt = fromIntegral maxCells
@@ -307,10 +306,10 @@ hsUncompactCells compactedSet maxCells res = unsafePerformIO $ do
         cellSet <- peekArray maxCellsInt cellSetPtr
         return (h3error, cellSet)
       else return (h3error, [])
+-}
 
-hsUncompactCellsUsingSize :: [H3Index] -> Int -> (H3Error, [H3Index])
-hsUncompactCellsUsingSize compactedSet res = unsafePerformIO $ do
-  -- TODO: Can we just call hsUncompactCellsSize compactedSet res?
+hsUncompactCells :: [H3Index] -> Int -> (H3Error, [H3Index])
+hsUncompactCells compactedSet res = unsafePerformIO $ do
   withArrayLen compactedSet $ \numCells compactedSetPtr -> do
     (sizeh3error, maxCells) <- alloca $ \maxCellsPtr -> do
       sizeh3error <- cUncompactCellsSize compactedSetPtr (fromIntegral numCells) res maxCellsPtr
@@ -330,14 +329,6 @@ hsUncompactCellsUsingSize compactedSet res = unsafePerformIO $ do
           return (h3error, cellSet)
         else return (h3error, [])
     else return (sizeh3error, [])
-{-
-numCells, 
-H3Index *cellSet, 
-const int64_t maxCells,
-const int res);
-H3Error uncompactCellsSize(const H3Index *compactedSet, const int64_t numCompacted, const int res, int64_t *out);
-H3Error uncompactCells(const H3Index *compactedSet, const int64_t numCells, H3Index *cellSet, const int64_t maxCells, const int res);
--}
 
 -- Directed edges
 

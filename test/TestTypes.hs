@@ -1,5 +1,5 @@
 module TestTypes
-    ( GenLatLng(GenLatLng)
+    ( GenLatLng(GenLatLng, fromGenLatLng)
     , Resolution(Resolution)
     ) where
 
@@ -13,7 +13,7 @@ newtype Resolution = Resolution Int
 instance Arbitrary Resolution where
     arbitrary = Resolution <$> chooseInt (0, 15)
 
-newtype GenLatLng = GenLatLng LatLng
+newtype GenLatLng = GenLatLng { fromGenLatLng :: LatLng }
   deriving (Eq, Show)
 
 instance Arbitrary GenLatLng where
