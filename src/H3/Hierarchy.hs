@@ -6,10 +6,6 @@ module H3.Hierarchy
   , cellToChildren
   , compactCells
   , uncompactCells
-<<<<<<< HEAD
-  , uncompactCellsUsingSize
-=======
->>>>>>> main
   ) where
 
 import Data.Int (Int64)
@@ -24,12 +20,7 @@ import H3.Internal.H3Api
 import H3.Internal.FFI 
   ( hsCellToChildren
   , hsCompactCells 
-<<<<<<< HEAD
-  , hsUncompactCells 
-  , hsUncompactCellsUsingSize 
-=======
   , hsUncompactCells
->>>>>>> main
   )
 import H3.Internal.Utils (toEither)
 
