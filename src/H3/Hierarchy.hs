@@ -6,7 +6,10 @@ module H3.Hierarchy
   , cellToChildren
   , compactCells
   , uncompactCells
+<<<<<<< HEAD
   , uncompactCellsUsingSize
+=======
+>>>>>>> main
   ) where
 
 import Data.Int (Int64)
@@ -21,8 +24,12 @@ import H3.Internal.H3Api
 import H3.Internal.FFI 
   ( hsCellToChildren
   , hsCompactCells 
+<<<<<<< HEAD
   , hsUncompactCells 
   , hsUncompactCellsUsingSize 
+=======
+  , hsUncompactCells
+>>>>>>> main
   )
 import H3.Internal.Utils (toEither)
 
@@ -58,18 +65,9 @@ cellToChildren cell = toEither . hsCellToChildren cell
 compactCells :: [H3Index] -> Either H3ErrorCodes [H3Index]
 compactCells  = toEither . hsCompactCells 
 
--- TODO: Should we keep the following?
--- | Uncompacts the set @compactedSet@ of indexes to the resolution @res@.
---   We are uncertain at the moment whether there is utility in being 
---   able to specify the @maxCells@ value here, or if using @uncompactCellsSize@ 
---   in the implementation is sufficient, as we have done in 
---   'uncompactCellsUsingSize'.
-uncompactCells :: [H3Index] -> Int64 -> Int -> Either H3ErrorCodes [H3Index]
-uncompactCells compactedSet maxCells = toEither . hsUncompactCells compactedSet maxCells
-
 -- | Uncompacts the set @compactedSet@ of indexes to the resolution @res@, 
 --   calling @uncompactCellsSize@ to determine the size of the 
 --   list of uncompacted indices.
-uncompactCellsUsingSize :: [H3Index] -> Int -> Either H3ErrorCodes [H3Index]
-uncompactCellsUsingSize compactedSet = toEither . hsUncompactCellsUsingSize compactedSet
+uncompactCells :: [H3Index] -> Int -> Either H3ErrorCodes [H3Index]
+uncompactCells compactedSet = toEither . hsUncompactCells compactedSet
 
