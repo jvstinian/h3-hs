@@ -21,7 +21,10 @@ module H3.Internal.FFI
   , hsGridPathCells
   , hsCellToChildren
   , hsCompactCells 
-  , hsUncompactCells
+  , hsUncompactCells 
+  , isValidDirectedEdge
+  , hsDirectedEdgeToCells
+  , hsOriginToDirectedEdges
   ) where
 
 import Data.Int (Int64)
@@ -324,4 +327,37 @@ hsUncompactCells compactedSet res = unsafePerformIO $ do
           return (h3error, cellSet)
         else return (h3error, [])
     else return (sizeh3error, [])
+
+-- Directed edges
+
+
+foreign import capi "h3/h3api.h isValidDirectedEdge" cIsValidDirectedEdge :: H3Index -> Int
+
+isValidDirectedEdge :: H3Index -> Bool
+isValidDirectedEdge = (/=0) . cIsValidDirectedEdge
+
+foreign import capi "h3/h3api.h directedEdgeToCells" cDirectedEdgeToCells :: H3Index -> Ptr H3Index -> IO H3Error
+
+hsDirectedEdgeToCells :: H3Index -> (H3Error, [H3Index])
+hsDirectedEdgeToCells h3index = unsafePerformIO $ do
+  allocaArray 2 $ \originDestinationPtr -> do
+    h3error <- cDirectedEdgeToCells h3index originDestinationPtr 
+    if h3error == 0
+    then do
+      originDestination <- peekArray 2 originDestinationPtr
+      return (h3error, originDestination)
+    else return (h3error, [])
+
+foreign import capi "h3/h3api.h originToDirectedEdges" cOriginToDirectedEdges :: H3Index -> Ptr H3Index -> IO H3Error
+
+hsOriginToDirectedEdges :: H3Index -> (H3Error, [H3Index])
+hsOriginToDirectedEdges h3index = unsafePerformIO $ do
+  allocaArray edgeCount $ \edgesPtr -> do
+    h3error <- cOriginToDirectedEdges h3index edgesPtr
+    if h3error == 0
+    then do
+      edges <- peekArray edgeCount edgesPtr
+      return (h3error, edges)
+    else return (h3error, [])
+  where edgeCount = 6
 
