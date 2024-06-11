@@ -38,25 +38,6 @@ tests =
         ]
     ]
 
--- TODO: Add the following test cases
---
--- areNeighborCells could be tested by applying gridRingUnsafe to a random point and checking that the indexes are neighbors - DONE
---
--- apply cellsToDirectedEdge to the results of gridRingUnsafe (or originToDirectedEdges) and then run isValidDirectedEdge - DONE
---
--- apply cellsToDirectedEdge to the results of gridRingUnsafe and then run getDirectedEdgeOrigin and getDirectedEdgeDestination 
--- to return to the values produced by gridRingUnsafe - DONE
---
--- similarly use directedEdgeToCells as an inverse to cellsToDirectedEdge - DONE
---
--- check that cellsToDirectedEdge produces the results of getDirectedEdgeOrigin and getDirectedEdgeDestination - SKIPPING Given the 
--- tests above this test is not necessary
--- 
--- originToDirectedEdges could be used instead of gridRingUnsafe to produce edges (this is done where appropriate with the preceding tests)
---
--- for directedEdgeToBoundary, try to identify a reasonable test, and fallback to a simple check of success if necessary - DONE
---
-
 test1RingCellsAreNeighbors :: Test
 test1RingCellsAreNeighbors = testProperty "Testing cells in 1-ring are neighbors" $ \(GenLatLng latLng) (Resolution res) ->
     let h3indexE = latLngToCell latLng res
