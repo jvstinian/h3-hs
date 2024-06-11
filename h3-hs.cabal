@@ -70,6 +70,7 @@ library
         H3.Traversal
         H3.Hierarchy
         H3.DirectedEdges
+        H3.Vertexes
 
     -- Modules included in this library but not exported.
     other-modules:
@@ -134,6 +135,7 @@ test-suite h3-hs-test
       TraversalTest
       HierarchyTest
       DirectedEdgesTest
+      VertexesTest
       TestTypes
 
     -- LANGUAGE extensions used by modules in this package.
