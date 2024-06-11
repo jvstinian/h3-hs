@@ -4,12 +4,8 @@ module DirectedEdgesTest
 
 import Control.Monad (liftM2, join)
 import H3.Indexing 
-  ( H3Index
-  , latLngToCell
-  , H3ErrorCodes(E_FAILED, E_PENTAGON)
-  )
-import H3.Inspection
-  ( stringToH3
+  ( latLngToCell
+  , H3ErrorCodes(E_PENTAGON)
   )
 import H3.Traversal
   ( gridRingUnsafe
@@ -27,7 +23,6 @@ import H3.DirectedEdges
 import TestTypes (GenLatLng(GenLatLng), Resolution(Resolution))
 import Test.Framework                       (Test, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
-import Test.QuickCheck                      (NonNegative(NonNegative), (==>))
 
 tests :: [Test]
 tests =
@@ -36,42 +31,12 @@ tests =
         ]
     , testGroup "Check identities"
         [ test1RingCellsAreNeighbors
-	, test1RingCellsBuildValidDirectEdges 
-	, testDirectedEdgesAreValid
-	, test1RingCellsToEdgeAndBack 
-	, test1RingCellsToEdgeToCells 
+        , test1RingCellsBuildValidDirectEdges 
+        , testDirectedEdgesAreValid
+        , test1RingCellsToEdgeAndBack 
+        , test1RingCellsToEdgeToCells 
         ]
     ]
-
-{-
-testCellToCenterChildBackToParent :: Test
-testCellToCenterChildBackToParent = testProperty "Testing cellToCenterChild followed by cellToParent returns original cell" $ \(GenLatLng latLng) (Resolution res1) (Resolution res2) ->
-    let parentRes = min res1 res2
-        childRes = max res1 res2
-        expectedParentIndexE = latLngToCell latLng parentRes
-        childIndexE = expectedParentIndexE >>= flip cellToCenterChild childRes
-        actualParentIndexE = childIndexE >>= flip cellToParent parentRes
-    in res1 /= res2 ==> expectedParentIndexE == actualParentIndexE
--}
-
--- TODO: Add the following test cases
---
--- areNeighborCells could be tested by applying gridRingUnsafe to a random point and checking that the indexes are neighbors - DONE
---
--- apply cellsToDirectedEdge to the results of gridRingUnsafe (or originToDirectedEdges) and then run isValidDirectedEdge - DONE
---
--- apply cellsToDirectedEdge to the results of gridRingUnsafe and then run getDirectedEdgeOrigin and getDirectedEdgeDestination 
--- to return to the values produced by gridRingUnsafe - DONE
---
--- similarly use directedEdgeToCells as an inverse to cellsToDirectedEdge - DONE
---
--- check that cellsToDirectedEdge produces the results of getDirectedEdgeOrigin and getDirectedEdgeDestination - SKIPPING Given the 
--- tests above this test is not necessary
--- 
--- originToDirectedEdges could be used instead of gridRingUnsafe to produce edges (this is done where appropriate with the preceding tests)
---
--- for directedEdgeToBoundary, try to identify a reasonable test, and fallback to a simple check of success if necessary - DONE
---
 
 test1RingCellsAreNeighbors :: Test
 test1RingCellsAreNeighbors = testProperty "Testing cells in 1-ring are neighbors" $ \(GenLatLng latLng) (Resolution res) ->
@@ -88,7 +53,7 @@ test1RingCellsBuildValidDirectEdges = testProperty "Testing cells in 1-ring can 
         buildDirectedCells origin neighbors = mapM (\neighbor -> cellsToDirectedEdge origin neighbor) neighbors
         directedCellsE = join $ liftM2 buildDirectedCells h3indexE ringE
         resultE = map isValidDirectedEdge <$> directedCellsE
-	checkValues = either (const False) and resultE
+        checkValues = either (const False) and resultE
     in (ringE == Left E_PENTAGON) || checkValues
 
 -- It appears that originToDirectedEdges can produce 0s and so we filter those here before testing validity
@@ -97,7 +62,7 @@ testDirectedEdgesAreValid = testProperty "Testing originToDirectedEdges produces
     let h3indexE = latLngToCell latLng res
         directedEdgesE = filter (/=0) <$> (h3indexE >>= originToDirectedEdges)
         resultE = map isValidDirectedEdge <$> directedEdgesE
-	checkValues = either (const False) and resultE
+        checkValues = either (const False) and resultE
     in checkValues
 
 test1RingCellsToEdgeAndBack :: Test
@@ -106,12 +71,12 @@ test1RingCellsToEdgeAndBack = testProperty "Testing cellsToDirectedEdge followed
         ringE = h3indexE >>= flip gridRingUnsafe 1
         buildDirectedCells origin neighbors = mapM (\neighbor -> cellsToDirectedEdge origin neighbor) neighbors
         directedCellsE = join $ liftM2 buildDirectedCells h3indexE ringE
-	originsE = directedCellsE >>= mapM getDirectedEdgeOrigin
-	destsE = directedCellsE >>= mapM getDirectedEdgeDestination
-	checkOriginE = liftM2 (\expt actls -> all (==expt) actls) h3indexE originsE
-	checkDestE = liftM2 (==) ringE destsE
-	checkOrigins = either (const False) id checkOriginE
-	checkDests = either (const False) id checkDestE
+        originsE = directedCellsE >>= mapM getDirectedEdgeOrigin
+        destsE = directedCellsE >>= mapM getDirectedEdgeDestination
+        checkOriginE = liftM2 (\expt actls -> all (==expt) actls) h3indexE originsE
+        checkDestE = liftM2 (==) ringE destsE
+        checkOrigins = either (const False) id checkOriginE
+        checkDests = either (const False) id checkDestE
     in (ringE == Left E_PENTAGON) || (checkOrigins && checkDests)
 
 test1RingCellsToEdgeToCells :: Test
@@ -120,15 +85,15 @@ test1RingCellsToEdgeToCells = testProperty "Testing cellsToDirectedEdge followed
         ringE = h3indexE >>= flip gridRingUnsafe 1
         buildDirectedCells origin neighbors = mapM (\neighbor -> cellsToDirectedEdge origin neighbor) neighbors
         directedCellsE = join $ liftM2 buildDirectedCells h3indexE ringE
-	outputCellsE = directedCellsE >>= mapM directedEdgeToCells
-	originsE = map head <$> outputCellsE
-	destsE = map last <$> outputCellsE
-	outputCellLengthsE = (map length) <$> outputCellsE 
-	checkOriginE = liftM2 (\expt actls -> all (==expt) actls) h3indexE originsE
-	checkDestE = liftM2 (==) ringE destsE
-	checkLengths = either (const False) (all (==2)) outputCellLengthsE
-	checkOrigins = either (const False) id checkOriginE
-	checkDests = either (const False) id checkDestE
+        outputCellsE = directedCellsE >>= mapM directedEdgeToCells
+        originsE = map head <$> outputCellsE
+        destsE = map last <$> outputCellsE
+        outputCellLengthsE = (map length) <$> outputCellsE 
+        checkOriginE = liftM2 (\expt actls -> all (==expt) actls) h3indexE originsE
+        checkDestE = liftM2 (==) ringE destsE
+        checkLengths = either (const False) (all (==2)) outputCellLengthsE
+        checkOrigins = either (const False) id checkOriginE
+        checkDests = either (const False) id checkDestE
     in (ringE == Left E_PENTAGON) || (checkLengths && checkOrigins && checkDests)
 
 -- It appears that directedEdgeToBoundary can return more than two points, for instance 
