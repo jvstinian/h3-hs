@@ -47,11 +47,9 @@ testCellToVertex = testProperty "Test cellToVertex produces valid vertex indices
 testCellToVertexes :: Test
 testCellToVertexes = testProperty "Test cellToVertexes produces valid vertex indices" $ \(GenLatLng latLng) (Resolution res) ->
     let h3indexE = latLngToCell latLng res
-        -- isPentagonAsBool = (/=0) . isPentagon
-        -- isPent = either (const False) id (isPentagonAsBool <$> h3indexE)
         vertexesE = h3indexE >>= cellToVertexes
         resultE = all isValidVertex <$> vertexesE
-    in {- (not isPent || vertexNum <= 4) ==> -} (resultE == Right True)
+    in (resultE == Right True)
 
 testVertexToLatLng :: Test
 testVertexToLatLng = testProperty "Test cellToVertexes followed by vertexToLatLng returns successfully" $ \(GenLatLng latLng) (Resolution res) ->
