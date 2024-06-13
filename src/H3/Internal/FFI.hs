@@ -283,7 +283,7 @@ foreign import capi "h3/h3api.h uncompactCellsSize" cUncompactCellsSize :: Ptr H
 
 foreign import capi "h3/h3api.h uncompactCells" cUncompactCells :: Ptr H3Index -> Int64 -> Ptr H3Index -> Int64 -> Int -> IO H3Error
 
-{- TODO: Remove
+{- TODO: Remove after looking into adjustments to gridRingUnsafe
 hsUncompactCellsSize :: [H3Index] -> Int -> IO (H3Error, Int64)
 hsUncompactCellsSize compactedSet res = do
   withArrayLen compactedSet $ \numCells compactedSetPtr -> do
@@ -294,18 +294,6 @@ hsUncompactCellsSize compactedSet res = do
         size <- peek maxCellsPtr
         return (h3error, size)
       else return (h3error, 0)
-
-hsUncompactCells :: [H3Index] -> Int64 -> Int -> (H3Error, [H3Index])
-hsUncompactCells compactedSet maxCells res = unsafePerformIO $ do
-  let maxCellsInt = fromIntegral maxCells
-  withArrayLen compactedSet $ \numCells compactedSetPtr -> do
-    allocaArray maxCellsInt $ \cellSetPtr -> do
-      h3error <- cUncompactCells compactedSetPtr (fromIntegral numCells) cellSetPtr maxCells res
-      if h3error == 0
-      then do
-        cellSet <- peekArray maxCellsInt cellSetPtr
-        return (h3error, cellSet)
-      else return (h3error, [])
 -}
 
 hsUncompactCells :: [H3Index] -> Int -> (H3Error, [H3Index])

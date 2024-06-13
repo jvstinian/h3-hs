@@ -152,12 +152,6 @@ allocaCStringLen fn = withCStringLen dummyString fnint
     where dummyString = replicate 17 '0'
           fnint (cstr, i) = fn (cstr, fromIntegral i)
 
-{- TODO: Remove in next MR
-peekCStringWithLen :: CString -> CULong -> IO String
-peekCStringWithLen = curry (peekCStringLen . ulongConvert)
-    where ulongConvert (cstr, ulong) = (cstr, fromIntegral ulong)
--}
-
 peekCStringIgnoreLen :: CString -> CULong -> IO String
 peekCStringIgnoreLen cstr _ = peekCString cstr
 
@@ -197,28 +191,12 @@ newCGeoLoop gl =
   else return $ CGeoLoop 0 nullPtr
   where numVerts = fromIntegral $ length gl
 
-{- NOTE: Apparently this is not needed currently.  Remove in next MR.
-newCGeoLoopPtr :: GeoLoop -> IO (Ptr CGeoLoop)
-newCGeoLoopPtr gl = do
-  cgl <- newCGeoLoop gl
-  ptr <- malloc 
-  poke ptr cgl
-  return ptr
--}
-
 destroyCGeoLoop :: CGeoLoop -> IO ()
 destroyCGeoLoop (CGeoLoop numVerts vertsPtr) = 
   if numVerts > 0
   then do
     free vertsPtr
   else return ()
-
-{- NOTE: Apparently this is not needed currently.  Remove in next MR.
-destroyCGeoLoopPtr :: Ptr CGeoLoop -> IO ()
-destroyCGeoLoopPtr ptr = do
-  peek ptr >>= destroyCGeoLoop
-  free ptr
--}
 
 data CGeoPolygon = CGeoPolygon 
     { cgeopoly_exterior :: CGeoLoop
@@ -372,26 +350,6 @@ withArrayInput as fn =
     where convertInt (ptr, i) = (ptr, fromIntegral i)
           fnadj = fn . convertInt
 
-{- TODO: Original attempt.  Remove in next PR.
-newPolygonFPtr :: Ptr CLinkedGeoPolygon -> IO LinkedGeoPolygonFPtr
-newPolygonFPtr ptr = do
-    fptr <- newForeignPtr destroyLinkedMultiPolygon ptr
-    {- free(): invalid size
-    fptr <- newForeignPtr finalizerFree ptr -- or mallocForeignPtr
-    addForeignPtrFinalizer destroyLinkedMultiPolygon fptr 
-    -}
-    {- This seems to work
-    fptr <- newForeignPtr_ ptr
-    addForeignPtrFinalizer destroyLinkedMultiPolygon fptr 
-    -}
-    return fptr
-
-{#fun pure cellsToLinkedMultiPolygon as c2hs_cellsToLinkedMultiPolygon
-      { withArrayInput* `[H3Index]'&,
-        alloca- `LinkedGeoPolygonFPtr' newPolygonFPtr*
-      } -> `H3Error' fromIntegral #}
--}
-
 withH3IndexArray :: [H3Index] -> ((Ptr CULong, CInt) -> IO b) -> IO b
 withH3IndexArray = withArrayInput . (map fromIntegral)
 
@@ -424,7 +382,6 @@ peekDouble :: Ptr CDouble -> IO Double
 peekDouble ptr = cdoubleToDouble <$> peek ptr
   where cdoubleToDouble (CDouble x) = x
 
--- TODO: The following is similar to peekAsH3Index, so possibly need to DRY this up
 peekInt64 :: Ptr CLong -> IO Int64
 peekInt64 ptr = fromIntegral <$> peek ptr
 
