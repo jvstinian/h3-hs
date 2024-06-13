@@ -382,7 +382,6 @@ peekDouble :: Ptr CDouble -> IO Double
 peekDouble ptr = cdoubleToDouble <$> peek ptr
   where cdoubleToDouble (CDouble x) = x
 
--- TODO: The following is similar to peekAsH3Index, so possibly need to DRY this up
 peekInt64 :: Ptr CLong -> IO Int64
 peekInt64 ptr = fromIntegral <$> peek ptr
 
