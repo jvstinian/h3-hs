@@ -29,6 +29,16 @@ synopsis:           A Haskell binding for H3
 description:        This package provides bindings to the H3 C API.  
                     H3 is a geospatial indexing system that partitions the world 
                     into hexagonal cells. 
+                    .
+                    For users with experience with bindings for other languages, 
+                    we recommend reviewing the project README, as we have 
+                    included notes for using the methods provided in this package. 
+                    In particular, as we bind to the C methods with few adjustments 
+                    to inputs and outputs beyond data marshalling, 
+                    there will be some differences for those familiar with the 
+                    python (and likely other) bindings, e.g. the methods 
+                    provided in this package expect the latitude and longitude 
+                    to be in radians rather than degrees. 
 
 -- URL for the project homepage or repository.
 homepage:           https://github.com/jvstinian/h3-hs
