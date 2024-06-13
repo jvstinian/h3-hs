@@ -3,6 +3,7 @@ module HierarchyTest
     ) where
 
 import Control.Monad (liftM2)
+import Data.List (nub)
 import Data.Either (isRight)
 import H3.Indexing 
   ( latLngToCell
@@ -70,7 +71,8 @@ testCompactCellsSucceeds :: Test
 testCompactCellsSucceeds = testProperty "Testing compactCells returns successfully" $ \genLatLngs (Resolution res) ->
     let latLngs = map fromGenLatLng genLatLngs
         cellSetE = mapM (flip latLngToCell res) latLngs
-        resultE = cellSetE >>= compactCells 
+        cellSetDedupE = nub <$> cellSetE -- deduplicate the list of cells, otherwise we will get E_DUPLICATE_INPUT
+        resultE = cellSetDedupE >>= compactCells 
     in isRight resultE
 
 testUncompactCellsSucceeds :: Test

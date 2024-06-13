@@ -47,7 +47,8 @@ testCellToVertex = testProperty "Test cellToVertex produces valid vertex indices
 testCellToVertexes :: Test
 testCellToVertexes = testProperty "Test cellToVertexes produces valid vertex indices" $ \(GenLatLng latLng) (Resolution res) ->
     let h3indexE = latLngToCell latLng res
-        vertexesE = h3indexE >>= cellToVertexes
+        allVertexesE = h3indexE >>= cellToVertexes
+        vertexesE = (filter (/=0)) <$> allVertexesE -- pentagons will include a 0 for one of the vertexes
         resultE = all isValidVertex <$> vertexesE
     in (resultE == Right True)
 
