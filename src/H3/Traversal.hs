@@ -10,6 +10,8 @@ module H3.Traversal
   , gridDistance 
   , cellToLocalIj
   , localIjToCell
+  , hsMaxGridDiskSize    -- TODO: Remove after testing
+  , hsGridRingUnsafeSize -- TODO: Remove after testing
   ) where
 
 import Data.Int (Int64)
@@ -29,6 +31,8 @@ import H3.Internal.FFI
   , hsGridDiskDistancesUnsafe
   , hsGridRingUnsafe
   , hsGridPathCells
+  , hsMaxGridDiskSize    -- TODO: Remove after testing
+  , hsGridRingUnsafeSize -- TODO: Remove after testing
   )
 import H3.Internal.Utils (toEither)
 
@@ -62,7 +66,7 @@ gridDiskDistancesUnsafe origin = toEither . hsGridDiskDistancesUnsafe origin
 
 -- | Produces the hollow hexagonal ring centered at origin with sides of length k.
 gridRingUnsafe :: H3Index -> Int -> Either H3ErrorCodes [H3Index]
-gridRingUnsafe h3index = toEither . hsGridRingUnsafe h3index 
+gridRingUnsafe h3index = fmap (filter (/= 0)) .  toEither . hsGridRingUnsafe h3index 
 
 -- | Given two H3 indexes, return the line of indexes between them (inclusive).
 --   This function may fail to find the line between two indexes, for example if they are very far apart. 
