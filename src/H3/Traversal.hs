@@ -64,7 +64,8 @@ gridDiskDistancesSafe origin = toEither . hsGridDiskDistancesSafe origin
 gridDiskDistancesUnsafe :: H3Index -> Int -> Either H3ErrorCodes ([H3Index], [Int])
 gridDiskDistancesUnsafe origin = toEither . hsGridDiskDistancesUnsafe origin 
 
--- | Produces the hollow hexagonal ring centered at origin with sides of length k.
+-- | Produces the hollow hexagonal ring centered at origin with sides of length k. 
+--   In this Haskell method, zeros have been removed from the resulting list of H3 indexes.
 gridRingUnsafe :: H3Index -> Int -> Either H3ErrorCodes [H3Index]
 gridRingUnsafe h3index = fmap (filter (/= 0)) .  toEither . hsGridRingUnsafe h3index 
 
