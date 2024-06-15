@@ -323,6 +323,7 @@ hsUncompactCells compactedSet res = unsafePerformIO $ do
 
 foreign import capi "h3/h3api.h isValidDirectedEdge" cIsValidDirectedEdge :: H3Index -> Int
 
+-- |Determines if the provided 'H3Index' is a valid unidirectional edge index.
 isValidDirectedEdge :: H3Index -> Bool
 isValidDirectedEdge = (/=0) . cIsValidDirectedEdge
 
