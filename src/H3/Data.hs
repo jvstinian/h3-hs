@@ -1,5 +1,5 @@
 module H3.Data
-  ( LatLng(LatLng)
+  ( LatLng(LatLng, lat, lng)
   , H3Index
   , H3ErrorCodes(..)
   , GeoLoop
@@ -8,7 +8,7 @@ module H3.Data
   ) where
 
 import H3.Internal.H3Api 
-  ( LatLng(LatLng)
+  ( LatLng(LatLng, lat, lng)
   , H3ErrorCodes(..)
   , H3Index
   , GeoLoop

@@ -3,7 +3,7 @@ module H3.Internal.H3Api
   ( H3ErrorCodes(..)
   , H3Error
   , H3Index
-  , LatLng(LatLng)
+  , LatLng(LatLng, lat, lng)
   , c2hs_latLngToCell
   , c2hs_cellToLatLng
   , c2hs_cellToBoundary
@@ -219,10 +219,10 @@ instance Storable CGeoPolygon where
         {# set GeoPolygon->numHoles #} p numHoles
         {# set GeoPolygon->holes #} p (castPtr holes)
 
--- |A GeoLoop is defined as a list of LatLng in Haskell
+-- |A GeoLoop is defined as a list of 'LatLng' in Haskell
 type GeoLoop = [LatLng]
 
--- |A GeoPolygon has an exterior and interior holes, the exterior and each interior hole being a GeoLoop
+-- |A GeoPolygon has an exterior and interior holes, the exterior and each interior hole being a 'GeoLoop'
 data GeoPolygon = GeoPolygon
    { geopoly_exterior :: GeoLoop -- ^ Exterior of polygon
    , geopoly_holes :: [GeoLoop]  -- ^ List of interior holes of polygon
