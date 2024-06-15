@@ -3,17 +3,15 @@ module TraversalTest
     ) where
 
 import Control.Monad (liftM2, join)
-import H3.Indexing 
+import H3.Data
   ( H3Index
-  , latLngToCell
   , H3ErrorCodes(E_FAILED, E_PENTAGON)
+  , CoordIJ(CoordIJ)
   )
-import H3.Inspection
-  ( stringToH3
-  )
+import H3.Indexing (latLngToCell)
+import H3.Inspection (stringToH3)
 import H3.Traversal
-  ( CoordIJ(CoordIJ)
-  , gridDisk
+  ( gridDisk
   , gridDiskUnsafe
   , gridDiskDistances
   , gridDiskDistancesSafe

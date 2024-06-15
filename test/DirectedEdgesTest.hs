@@ -3,10 +3,8 @@ module DirectedEdgesTest
     ) where
 
 import Control.Monad (liftM2, join)
-import H3.Indexing 
-  ( latLngToCell
-  , H3ErrorCodes(E_PENTAGON)
-  )
+import H3.Data (H3ErrorCodes(E_PENTAGON))
+import H3.Indexing (latLngToCell)
 import H3.Traversal
   ( gridRingUnsafe
   )

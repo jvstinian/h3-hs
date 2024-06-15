@@ -81,6 +81,7 @@ library
 
     -- Modules exported by the library.
     exposed-modules:  
+        H3.Data
         H3.Miscellaneous
         H3.Indexing
         H3.Inspection

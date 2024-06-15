@@ -1,14 +1,13 @@
 module H3.Regions
   ( polygonToCells
   , cellsToLinkedMultiPolygon
-  , GeoPolygon(GeoPolygon)
   ) where
 
 import Data.Word (Word32)
 import H3.Internal.H3Api 
   ( H3ErrorCodes
   , H3Index
-  , GeoPolygon(GeoPolygon)
+  , GeoPolygon
   , hsCellsToLinkedMultiPolygon 
   )
 import H3.Internal.FFI 
