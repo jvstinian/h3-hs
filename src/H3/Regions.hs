@@ -15,12 +15,12 @@ import H3.Internal.FFI
   )
 import H3.Internal.Utils (toEither)
 
--- | polygonToCells takes a given GeoJSON-like GeoPolygon data structure and fills it with the hexagons that are contained in the GeoPolygon.  
+-- | polygonToCells takes a given GeoJSON-like 'GeoPolygon' data structure and fills it with the hexagons that are contained in the 'GeoPolygon'.  
 --   Containment is determined by the cells' centroids.
 polygonToCells :: GeoPolygon -> Int -> Word32 -> Either H3ErrorCodes [H3Index]
 polygonToCells poly res = toEither . hsPolygonToCells poly res
 
--- | Creates GeoPolygon describing the outline(s) of a set of hexagons. Polygon outlines will follow GeoJSON MultiPolygon order: 
+-- | Creates 'GeoPolygon' describing the outline(s) of a set of hexagons. Polygon outlines will follow GeoJSON MultiPolygon order: 
 --   Each polygon will have one outer loop, which is first in the list, followed by any holes.  
 --   It is expected that all hexagons in the set have the same resolution and that the set contains no duplicates. 
 --   Behavior is undefined if duplicates or multiple resolutions are present, and the algorithm may produce unexpected or invalid output.
