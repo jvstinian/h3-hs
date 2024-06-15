@@ -26,10 +26,11 @@ version:            0.2.0.0
 synopsis:           A Haskell binding for H3
 
 -- A longer description of the package.
-description:        This package provides bindings to the H3 C API.  
+description:        This package provides bindings to the 
+                    [H3 C API v4](https://h3geo.org/docs/api/indexing).  
                     H3 is a geospatial indexing system that partitions the world 
                     into hexagonal cells. 
-                    .
+                    
                     For users with experience with bindings for other languages, 
                     we recommend reviewing the project README, as we have 
                     included notes for using the methods provided in this package. 
