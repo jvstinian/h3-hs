@@ -70,10 +70,11 @@ gridDiskDistancesUnsafe :: H3Index -- ^ origin
 gridDiskDistancesUnsafe origin = toEither . hsGridDiskDistancesUnsafe origin 
 
 -- | Produces the hollow hexagonal ring centered at @origin@ with sides of length @k@.
+--   In this Haskell method, zeros have been removed from the resulting list of H3 indexes.
 gridRingUnsafe :: H3Index -- ^ origin
                -> Int     -- ^ k
                -> Either H3ErrorCodes [H3Index]
-gridRingUnsafe h3index = toEither . hsGridRingUnsafe h3index 
+gridRingUnsafe h3index = fmap (filter (/= 0)) . toEither . hsGridRingUnsafe h3index 
 
 -- | Given two H3 indexes, return the line of indexes between them (inclusive).
 --   This function may fail to find the line between two indexes, for example if they are very far apart. 
