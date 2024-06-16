@@ -10,8 +10,6 @@ module H3.Traversal
   , gridDistance 
   , cellToLocalIj
   , localIjToCell
-  , hsMaxGridDiskSize    -- TODO: Remove after testing
-  , hsGridRingUnsafeSize -- TODO: Remove after testing
   ) where
 
 import Data.Int (Int64)
@@ -31,8 +29,6 @@ import H3.Internal.FFI
   , hsGridDiskDistancesUnsafe
   , hsGridRingUnsafe
   , hsGridPathCells
-  , hsMaxGridDiskSize    -- TODO: Remove after testing
-  , hsGridRingUnsafeSize -- TODO: Remove after testing
   )
 import H3.Internal.Utils (toEither)
 
