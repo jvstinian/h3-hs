@@ -42,7 +42,9 @@ areNeighborCells :: H3Index -> H3Index -> Either H3ErrorCodes Bool
 areNeighborCells origin = toEither . c2hs_areNeighborCells origin
 
 -- | Returns a unidirectional edge H3 index based on the provided origin and destination.
-cellsToDirectedEdge :: H3Index -> H3Index -> Either H3ErrorCodes H3Index
+cellsToDirectedEdge :: H3Index -- ^ origin
+                    -> H3Index -- ^ destination
+                    -> Either H3ErrorCodes H3Index
 cellsToDirectedEdge origin = toEither . c2hs_cellsToDirectedEdge origin 
 
 -- | Returns the origin hexagon from the unidirectional edge 'H3Index'.
