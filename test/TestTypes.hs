@@ -4,7 +4,7 @@ module TestTypes
     ) where
 
 import Control.Monad (liftM2)
-import H3.Indexing (LatLng(LatLng))
+import H3.Data (LatLng(LatLng))
 import Test.QuickCheck (Arbitrary (..), chooseInt, choose)
 
 newtype Resolution = Resolution Int

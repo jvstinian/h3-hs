@@ -9,9 +9,9 @@ module H3.DirectedEdges
   , directedEdgeToBoundary
   ) where
 
-import H3.Indexing (LatLng)
 import H3.Internal.H3Api 
-  ( H3ErrorCodes
+  ( LatLng
+  , H3ErrorCodes
   , H3Index
   , c2hs_areNeighborCells
   , c2hs_cellsToDirectedEdge

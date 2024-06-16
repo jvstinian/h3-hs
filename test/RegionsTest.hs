@@ -5,14 +5,11 @@ module RegionsTest
 
 import Data.Either (isRight)
 import H3.Miscellaneous (degsToRads)
-import H3.Indexing 
-  ( LatLng(LatLng)
-  , latLngToCell
-  )
+import H3.Data (LatLng(LatLng), GeoPolygon(GeoPolygon))
+import H3.Indexing (latLngToCell)
 import H3.Regions
   ( polygonToCells
   , cellsToLinkedMultiPolygon
-  , GeoPolygon(GeoPolygon)
   )
 import TestTypes (GenLatLng(GenLatLng))
 import Test.Framework                       (Test, testGroup)
