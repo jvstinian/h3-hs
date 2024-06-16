@@ -1,3 +1,8 @@
+{-|
+Module      : H3.Data
+
+This module collects the data types provided by the H3 API.
+-}
 module H3.Data
   ( LatLng(LatLng, lat, lng)
   , H3Index
