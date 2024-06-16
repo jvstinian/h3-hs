@@ -80,6 +80,7 @@ gridRingUnsafe h3index = toEither . hsGridRingUnsafe h3index
 --   It may also fail when finding distances for indexes on opposite sides of a pentagon.
 --
 --   Notes:
+--
 --     * The specific output of this function should not be considered stable across library versions. 
 --       The only guarantees the library provides are that the line length will be consistent with the distance method 
 --       and that every index in the line will be a neighbor of the preceding index.
