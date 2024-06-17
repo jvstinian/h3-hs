@@ -1,3 +1,8 @@
+{-|
+Module      : H3.Vertexes
+
+Vertex mode allows encoding the topological vertexes of H3 cells.
+-}
 module H3.Vertexes
   ( cellToVertex
   , cellToVertexes 

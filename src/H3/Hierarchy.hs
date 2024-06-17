@@ -1,3 +1,9 @@
+{-|
+Module      : H3.Hierarchy
+
+These functions permit moving between resolutions in the H3 grid system. 
+The functions produce parent cells (coarser), or child cells (finer).
+-}
 module H3.Hierarchy
   ( cellToParent 
   , cellToCenterChild 

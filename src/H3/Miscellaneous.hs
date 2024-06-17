@@ -1,3 +1,12 @@
+{-|
+Module      : H3.Miscellaneous
+
+These methods in this module include 
+
+* general utilities to assist with activities such as unit conversions, and 
+* methods for retrieving key information about the H3 indexing system, such as 
+  pentagon cell ids, resolution 0 cells, etc.
+-}
 module H3.Miscellaneous 
   ( degsToRads
   , radsToDegs

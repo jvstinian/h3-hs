@@ -1,3 +1,8 @@
+{-|
+Module      : H3.DirectedEdges
+
+Directed edges allow encoding the directed edge from one cell to a neighboring cell.
+-}
 module H3.DirectedEdges
   ( isValidDirectedEdge 
   , directedEdgeToCells
