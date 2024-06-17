@@ -143,25 +143,6 @@ testGetNumCells = testProperty "getNumCells returns number of cells specified in
           actualResultE = mapM getNumCells resolutions
           checkValuesE = liftM2 (==) actualResultE expectedResultE 
 
-{- TODO: This test needs to be fixed so as to use proper edges.  
- -       We might need to move this test to the Directed Edges tests
--- For generated LatLng (converted to H3Index), check that 
--- the conversion from km to m is satisfied by  
--- edgeLengthKm :: H3Index -> Either H3ErrorCodes Double
--- and 
--- edgeLengthM :: H3Index -> Either H3ErrorCodes Double
-testEdgeLengthConversion :: Test
-testEdgeLengthConversion = testProperty "unit conversion from edgeLengthKm to edgeLengthM" $ \(GenLatLng latLng) (Resolution res) ->
-    let h3indexE = latLngToCell latLng res
-        convertKmToM = (*) 1000.0
-        actualResultE = h3indexE >>= (fmap convertKmToM . edgeLengthKm)
-        expectedResultE = h3indexE >>= edgeLengthM
-        tol = 1e-2
-        valuesApproximatelyEqual a b = abs (a - b) < tol
-        checkCellValue = liftM2 valuesApproximatelyEqual actualResultE expectedResultE 
-    in either (const False) id checkCellValue
--}
-
 testGreatCircleDistanceConversion :: Test
 testGreatCircleDistanceConversion = testProperty "unit conversion from greatCircleDistanceKm to greatCircleDistanceM" $ \(GenLatLng latLng1) (GenLatLng latLng2) ->
     let actualResultE = 1000.0 * (greatCircleDistanceKm latLng1 latLng2)
