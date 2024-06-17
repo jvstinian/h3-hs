@@ -1,3 +1,9 @@
+{-|
+Module      : H3.Inspection
+
+These functions provide metadata about an H3 index, such as its resolution or base cell, 
+and provide utilities for converting into and out of the 64-bit representation of an H3 index.
+-}
 module H3.Inspection
   ( getResolution
   , getBaseCellNumber

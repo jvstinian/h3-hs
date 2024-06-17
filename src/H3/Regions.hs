@@ -1,3 +1,8 @@
+{-|
+Module      : H3.Regions
+
+These functions convert H3 indexes to and from polygonal areas.
+-}
 module H3.Regions
   ( polygonToCells
   , cellsToLinkedMultiPolygon

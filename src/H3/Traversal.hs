@@ -1,3 +1,9 @@
+{-|
+Module      : H3.Traversal
+
+Grid traversal allows finding cells in the vicinity of an origin cell, 
+and determining how to traverse the grid from one cell to another.
+-}
 module H3.Traversal
   ( gridDisk
   , gridDiskUnsafe
