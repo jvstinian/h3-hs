@@ -1,3 +1,8 @@
+{-|
+Module      : H3.Vertexes
+
+Vertex mode allows encoding the topological vertexes of H3 cells.
+-}
 module H3.Vertexes
   ( cellToVertex
   , cellToVertexes 
@@ -18,10 +23,12 @@ import H3.Internal.FFI
   )
 import H3.Internal.Utils (toEither)
 
--- | Returns the index for the specified cell vertex. 
+-- | Returns the index for the specified cell vertex and vertex number. 
 --   Valid vertex numbers are between 0 and 5 (inclusive) for hexagonal cells, 
 --   and 0 and 4 (inclusive) for pentagonal cells.
-cellToVertex :: H3Index -> Int -> Either H3ErrorCodes H3Index
+cellToVertex :: H3Index -- ^ origin
+             -> Int     -- ^ vertexNum
+             -> Either H3ErrorCodes H3Index
 cellToVertex origin = toEither . c2hs_cellToVertex origin 
 
 -- | Returns the latitude and longitude coordinates of the given vertex.

@@ -5,9 +5,7 @@ module DirectedEdgesTest
 import Control.Monad (liftM2, join)
 import H3.Data (H3ErrorCodes(E_PENTAGON))
 import H3.Indexing (latLngToCell)
-import H3.Traversal
-  ( gridRingUnsafe
-  )
+import H3.Traversal (gridRingUnsafe)
 import H3.DirectedEdges
   ( isValidDirectedEdge 
   , directedEdgeToCells
@@ -18,6 +16,7 @@ import H3.DirectedEdges
   , getDirectedEdgeDestination
   , directedEdgeToBoundary
   )
+import H3.Miscellaneous (edgeLengthM, edgeLengthKm)
 import TestTypes (GenLatLng(GenLatLng), Resolution(Resolution))
 import Test.Framework                       (Test, testGroup)
 import Test.Framework.Providers.QuickCheck2 (testProperty)
@@ -33,6 +32,7 @@ tests =
         , testDirectedEdgesAreValid
         , test1RingCellsToEdgeAndBack 
         , test1RingCellsToEdgeToCells 
+        , testEdgeLengthConversion 
         ]
     ]
 
@@ -103,4 +103,22 @@ testDirectedEdgeToBoundaryHasAtLeastTwoPoints = testProperty "Testing directedEd
         edgeE = head <$> (h3indexE >>= originToDirectedEdges)
         bdryE = edgeE >>= directedEdgeToBoundary
     in (edgeE == Right 0) || either (const False) ((>=2) . length) bdryE
+
+-- For generated LatLng (converted to H3Index), we generate the edges 
+-- from the corresponding cell, and for each edge check that 
+-- the conversion from km to m is satisfied by  
+-- edgeLengthKm :: H3Index -> Either H3ErrorCodes Double
+-- and 
+-- edgeLengthM :: H3Index -> Either H3ErrorCodes Double
+testEdgeLengthConversion :: Test
+testEdgeLengthConversion = testProperty "unit conversion from edgeLengthKm to edgeLengthM" $ \(GenLatLng latLng) (Resolution res) ->
+    let h3indexE = latLngToCell latLng res
+        directedEdgesE = filter (/=0) <$> (h3indexE >>= originToDirectedEdges)
+        convertKmToM = (*) 1000.0
+        actualResultE = directedEdgesE >>= mapM (fmap convertKmToM . edgeLengthKm)
+        expectedResultE = directedEdgesE >>= mapM edgeLengthM
+        tol = 1e-8
+        listsApproximatelyEqual as bs = zipWith (\a b -> abs (a - b) < tol) as bs
+        checkResolutionValues = liftM2 listsApproximatelyEqual actualResultE expectedResultE 
+    in either (const False) and checkResolutionValues
 
