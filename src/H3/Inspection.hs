@@ -1,3 +1,9 @@
+{-|
+Module      : H3.Inspection
+
+These functions provide metadata about an H3 index, such as its resolution or base cell, 
+and provide utilities for converting into and out of the 64-bit representation of an H3 index.
+-}
 module H3.Inspection
   ( getResolution
   , getBaseCellNumber
@@ -23,11 +29,11 @@ import H3.Internal.FFI
   , hsGetIcosahedronFaces )
 import H3.Internal.Utils (toEither)
 
--- |Converts the string representation to the H3Index (Word64) representation.
+-- |Converts the string representation to the 'H3Index' (Word64) representation.
 stringToH3 :: String -> Either H3ErrorCodes H3Index
 stringToH3 = toEither . c2hs_stringToH3
 
--- |Converts the H3Index representation to the string representation.
+-- |Converts the 'H3Index' representation to the string representation.
 h3ToString :: H3Index -> Either H3ErrorCodes String
 h3ToString = toEither . c2hs_h3ToString
 

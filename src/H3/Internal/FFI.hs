@@ -315,19 +315,6 @@ foreign import capi "h3/h3api.h uncompactCellsSize" cUncompactCellsSize :: Ptr H
 
 foreign import capi "h3/h3api.h uncompactCells" cUncompactCells :: Ptr H3Index -> Int64 -> Ptr H3Index -> Int64 -> Int -> IO H3Error
 
-{- TODO: Remove after looking into adjustments to gridRingUnsafe
-hsUncompactCellsSize :: [H3Index] -> Int -> IO (H3Error, Int64)
-hsUncompactCellsSize compactedSet res = do
-  withArrayLen compactedSet $ \numCells compactedSetPtr -> do
-    alloca $ \maxCellsPtr -> do
-      h3error <- cUncompactCellsSize compactedSetPtr (fromIntegral numCells) res maxCellsPtr
-      if h3error == 0
-      then do
-        size <- peek maxCellsPtr
-        return (h3error, size)
-      else return (h3error, 0)
--}
-
 hsUncompactCells :: [H3Index] -> Int -> (H3Error, [H3Index])
 hsUncompactCells compactedSet res = unsafePerformIO $ do
   withArrayLen compactedSet $ \numCells compactedSetPtr -> do
@@ -355,6 +342,7 @@ hsUncompactCells compactedSet res = unsafePerformIO $ do
 
 foreign import capi "h3/h3api.h isValidDirectedEdge" cIsValidDirectedEdge :: H3Index -> Int
 
+-- |Determines if the provided 'H3Index' is a valid unidirectional edge index.
 isValidDirectedEdge :: H3Index -> Bool
 isValidDirectedEdge = (/=0) . cIsValidDirectedEdge
 

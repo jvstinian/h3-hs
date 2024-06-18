@@ -1,3 +1,9 @@
+{-|
+Module      : H3.Indexing
+
+These functions are used for finding the H3 cell index containing coordinates, 
+and for finding the center and boundary of H3 indexes.
+-}
 module H3.Indexing
   ( latLngToCell
   , cellToLatLng
