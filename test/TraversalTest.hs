@@ -14,7 +14,6 @@ import H3.Traversal
   ( gridDisk
   , gridDiskUnsafe
   , gridDiskDistances
-  , gridDiskDistancesSafe
   , gridDiskDistancesUnsafe
   , gridRingUnsafe
   , gridPathCells
