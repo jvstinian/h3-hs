@@ -61,7 +61,13 @@ gridDiskDistances :: H3Index -- ^ origin
                   -> Either H3ErrorCodes ([H3Index], [Int])
 gridDiskDistances origin = toEither . hsGridDiskDistances origin 
 
--- | gridDiskDistancesSafe produces indexes within @k@ distance of the @origin@ index.
+-- | gridDiskDistancesSafe produces indexes within @k@ distance of the @origin@ index. 
+--   While testing the Haskell bindings, we have found issues with this function hanging. 
+--   This does not appear to happen with @gridDiskDistances@ and @gridDiskDistancesUnsafe@, 
+--   though the official H3 documentation should be consulted for further 
+--   details about these functions.  
+--   We continue to make this function available for now, but it should be noted that 
+--   use of this function may cause issues. 
 gridDiskDistancesSafe :: H3Index -- ^ origin 
                       -> Int     -- ^ k
                       -> Either H3ErrorCodes ([H3Index], [Int])

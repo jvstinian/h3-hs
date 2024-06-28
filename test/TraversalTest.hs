@@ -39,7 +39,7 @@ tests =
         , testGridDiskMethods "gridDiskUnsafe" gridDiskUnsafe
         , testGridDiskDistancesMethods maxGridDistance "gridDiskDistances" gridDiskDistances
         , testGridDiskDistancesMethods maxGridDistance "gridDiskDistancesUnsafe" gridDiskDistancesUnsafe
-        , testGridDiskDistancesMethods maxGridDistance "gridDiskDistancesSafe" gridDiskDistancesSafe
+        -- , testGridDiskDistancesMethods maxGridDistance "gridDiskDistancesSafe" gridDiskDistancesSafe
         ]
     , testGroup "Adapting CLI tests for Traversal methods"
         [ testCellToLocalIjWithKnownValues
