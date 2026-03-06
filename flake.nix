@@ -129,5 +129,6 @@
     ) // {
       overlays.default = h3-hs-source-overlay;
       overlays.h3-hs-source = h3-hs-source-overlay;
+      overlays.h3-hs-hackage = h3-hs-hackage-overlay;
     };
 }
