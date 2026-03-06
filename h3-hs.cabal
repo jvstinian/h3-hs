@@ -105,7 +105,7 @@ library
 
     -- Other library packages from which modules are imported.
     build-depends:
-        base ^>= 4.19.1.0 || ^>= 4.18.1.0 || ^>=4.17.2.1 || ^>=4.16.4.0 || ^>= 4.15.1.0 || ^>= 4.14.3.0
+        base ^>= 4.20.2.0 || ^>= 4.19.1.0 || ^>= 4.18.1.0 || ^>=4.17.2.1 || ^>=4.16.4.0 || ^>= 4.15.1.0 || ^>= 4.14.3.0
 
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -153,7 +153,7 @@ test-suite h3-hs-test
     build-depends:
         base,
         h3-hs,
-        QuickCheck ^>= 2.14.3,
+        QuickCheck >= 2.14.3 && < 2.16,
         test-framework ^>= 0.8.2,
         test-framework-quickcheck2 ^>= 0.3.0.5
 
