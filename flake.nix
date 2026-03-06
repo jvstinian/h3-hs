@@ -48,7 +48,12 @@
               packageOverrides = final.lib.composeExtensions prev.haskell.packageOverrides (
                   finalHaskell: prevHaskell:
                     {
-                      h3-hs = final.haskell.lib.markUnbroken (prevHaskell.h3-hs.override { h3 = final.h3_4; });
+                      # Remove the doJailBreak and nativeBuildInputs override when possible
+                      h3-hs = final.haskell.lib.doJailbreak (final.haskell.lib.markUnbroken (
+                        (prevHaskell.h3-hs.override { h3 = final.h3_4; }).overrideAttrs (prevAttrs: {
+                            nativeBuildInputs = prevAttrs.nativeBuildInputs ++ [ finalHaskell.c2hs ];
+                        })
+                      ));
                     }
               );
           };
