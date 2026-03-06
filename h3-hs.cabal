@@ -20,7 +20,7 @@ name:               h3-hs
 -- PVP summary:     +-+------- breaking API changes
 --                  | | +----- non-breaking API additions
 --                  | | | +--- code changes with no API change
-version:            0.2.0.1
+version:            0.2.0.2
 
 -- A short (one-line) description of the package.
 synopsis:           A Haskell binding for H3
@@ -105,14 +105,14 @@ library
 
     -- Other library packages from which modules are imported.
     build-depends:
-        base ^>= 4.18.1.0 || ^>=4.17.2.1 || ^>=4.16.4.0 || ^>= 4.15.1.0 || ^>= 4.14.3.0
+        base ^>= 4.19.1.0 || ^>= 4.18.1.0 || ^>=4.17.2.1 || ^>=4.16.4.0 || ^>= 4.15.1.0 || ^>= 4.14.3.0
 
     -- Directories containing source files.
     hs-source-dirs:   src
 
     extra-libraries: h3
 
-    -- build-tool-depends: c2hs:c2hs
+    -- build-tool-depends: c2hs:c2hs ^>= 0.28.8
 
     -- Base language which the package is written in.
     default-language: Haskell2010
