@@ -42,7 +42,7 @@
               );
           };
       };
-      # Use the following after upgrading nixpkgs
+      # The following fixes the current hackage package tracked in nixpkgs
       h3-hs-hackage-overlay = final: prev: {
           haskell = prev.haskell // {
               packageOverrides = final.lib.composeExtensions prev.haskell.packageOverrides (
@@ -89,16 +89,6 @@
           haskell-build-packages-test = base-packages ++ [
               (pkgs.haskellPackages.ghcWithPackages test-package-map)
           ];
-
-          # release-haskell-package-map = hs: [hs.h3-hs hs.cabal-install hs.test-framework-quickcheck2];
-          # release-haskell-packages = [
-          #     pkgs.which
-          #     pkgs.h3_4
-          #     pkgs.pkg-config
-          #     # (pkgs.haskellPackages.ghcWithPackages (hs: [hs.h3-hs hs.cabal-install hs.c2hs hs.test-framework-quickcheck2]))
-          #     # NOTE: Removed c2hs from the following
-          #     (pkgs.haskellPackages.ghcWithPackages release-haskell-package-map) # (hs: [hs.h3-hs hs.cabal-install hs.test-framework-quickcheck2])
-          # ];
       in rec {
         devShells = {
             default = pkgs.mkShell {
