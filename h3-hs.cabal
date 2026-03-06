@@ -112,7 +112,7 @@ library
 
     extra-libraries: h3
 
-    -- build-tool-depends: c2hs:c2hs ^>= 0.28.8
+    build-tool-depends: c2hs:c2hs ^>= 0.28.8
 
     -- Base language which the package is written in.
     default-language: Haskell2010
