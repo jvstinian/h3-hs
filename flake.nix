@@ -69,7 +69,6 @@
           base-packages = [
               pkgs.which
               pkgs.h3_4
-              pkgs.pkg-config
           ];
 
           build-package-map = hs: [hs.cabal-install hs.test-framework-quickcheck2 hs.c2hs ];
