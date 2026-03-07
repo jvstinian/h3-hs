@@ -98,19 +98,41 @@
                 export LD_LIBRARY_PATH=${pkgs.h3_4}/lib:$LD_LIBRARY_PATH
               '';
             };
-            ghc928shell = pkgs.mkShell {
-              # packages = [ pkgs.h3_4 (pkgs.haskell.packages.ghc928.ghcWithPackages build-package-map) ];
-              packages = haskell-build-packages-for-version "ghc928" build-package-map;
+            ghc948shell = pkgs.mkShell {
+              # packages = [ pkgs.h3_4 (pkgs.haskell.packages.ghc948.ghcWithPackages build-package-map) ];
+              packages = haskell-build-packages-for-version "ghc948" build-package-map;
               shellHook = ''
-                export PS1="\\[\\e[1;34m\\]h3-hs-dev (ghc-9.2.8) > \\[\\e[0m\\]"
+                export PS1="\\[\\e[1;34m\\]h3-hs-dev (ghc-9.4.8) > \\[\\e[0m\\]"
                 export LD_LIBRARY_PATH=${pkgs.h3_4}/lib:$LD_LIBRARY_PATH
               '';
             };
-            ghc982shell = pkgs.mkShell {
-              # packages = [ pkgs.which pkgs.h3_4 (pkgs.haskell.packages.ghc982.ghcWithPackages build-package-map) ];
-              packages = haskell-build-packages-for-version "ghc982" build-package-map;
+            ghc967shell = pkgs.mkShell {
+              # packages = [ pkgs.h3_4 (pkgs.haskell.packages.ghc967.ghcWithPackages build-package-map) ];
+              packages = haskell-build-packages-for-version "ghc967" build-package-map;
               shellHook = ''
-                export PS1="\\[\\e[1;34m\\]h3-hs-dev (ghc-9.8.2) > \\[\\e[0m\\]"
+                export PS1="\\[\\e[1;34m\\]h3-hs-dev (ghc-9.6.7) > \\[\\e[0m\\]"
+                export LD_LIBRARY_PATH=${pkgs.h3_4}/lib:$LD_LIBRARY_PATH
+              '';
+            };
+            ghc984shell = pkgs.mkShell {
+              # packages = [ pkgs.which pkgs.h3_4 (pkgs.haskell.packages.ghc984.ghcWithPackages build-package-map) ];
+              packages = haskell-build-packages-for-version "ghc984" build-package-map;
+              shellHook = ''
+                export PS1="\\[\\e[1;34m\\]h3-hs-dev (ghc-9.8.4) > \\[\\e[0m\\]"
+                export LD_LIBRARY_PATH=${pkgs.h3_4}/lib:$LD_LIBRARY_PATH
+              '';
+            };
+            ghc9103shell = pkgs.mkShell {
+              packages = haskell-build-packages-for-version "ghc9103" build-package-map;
+              shellHook = ''
+                export PS1="\\[\\e[1;34m\\]h3-hs-dev (ghc-9.10.3) > \\[\\e[0m\\]"
+                export LD_LIBRARY_PATH=${pkgs.h3_4}/lib:$LD_LIBRARY_PATH
+              '';
+            };
+            ghc9122shell = pkgs.mkShell {
+              packages = haskell-build-packages-for-version "ghc9122" build-package-map;
+              shellHook = ''
+                export PS1="\\[\\e[1;34m\\]h3-hs-dev (ghc-9.12.2) > \\[\\e[0m\\]"
                 export LD_LIBRARY_PATH=${pkgs.h3_4}/lib:$LD_LIBRARY_PATH
               '';
             };
