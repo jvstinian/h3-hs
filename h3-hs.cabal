@@ -20,7 +20,7 @@ name:               h3-hs
 -- PVP summary:     +-+------- breaking API changes
 --                  | | +----- non-breaking API additions
 --                  | | | +--- code changes with no API change
-version:            0.2.0.1
+version:            0.2.0.2
 
 -- A short (one-line) description of the package.
 synopsis:           A Haskell binding for H3
@@ -69,7 +69,7 @@ extra-doc-files:    CHANGELOG.md
 -- Extra source files to be distributed with the package, such as examples, or a tutorial module.
 -- extra-source-files:
 
-tested-with: GHC==9.6.3 GHC==9.4.8 GHC==9.2.8 GHC==9.0.2 GHC==8.10.7
+tested-with: GHC==9.12.2 GHC==9.10.3 GHC==9.8.4 GHC==9.6.7 GHC==9.6.3 GHC==9.4.8 GHC==9.2.8 GHC==9.0.2 GHC==8.10.7
 
 source-repository head
   type: git
@@ -105,14 +105,14 @@ library
 
     -- Other library packages from which modules are imported.
     build-depends:
-        base ^>= 4.18.1.0 || ^>=4.17.2.1 || ^>=4.16.4.0 || ^>= 4.15.1.0 || ^>= 4.14.3.0
+        base ^>= 4.21.0.0 || ^>= 4.20.2.0 || ^>= 4.19.1.0 || ^>= 4.18.1.0 || ^>=4.17.2.1 || ^>=4.16.4.0 || ^>= 4.15.1.0 || ^>= 4.14.3.0
 
     -- Directories containing source files.
     hs-source-dirs:   src
 
     extra-libraries: h3
 
-    -- build-tool-depends: c2hs:c2hs
+    build-tool-depends: c2hs:c2hs ^>= 0.28.8
 
     -- Base language which the package is written in.
     default-language: Haskell2010
@@ -153,7 +153,7 @@ test-suite h3-hs-test
     build-depends:
         base,
         h3-hs,
-        QuickCheck ^>= 2.14.3,
+        QuickCheck >= 2.14.3 && < 2.16,
         test-framework ^>= 0.8.2,
         test-framework-quickcheck2 ^>= 0.3.0.5
 
