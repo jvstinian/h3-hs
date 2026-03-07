@@ -1,17 +1,20 @@
-# Ideally I'd like to set 
+# We have decided to set 
 #   build-tool-depends: c2hs:c2hs
-# in the h3-hs.cabal file, but unfortunately this appears 
+# in the h3-hs.cabal file, though unfortunately this appears 
 # to cause an issue in the development shells below.
-# If we enable `build-tool-depends`, we can use 
-# `nix develop`, but then from within that development shell, 
+# We have decided to use this approach as we regard the cabal file as the
+# source of truth for the dependencies of the package, and
+# will work around the issues in the nix development shells.
+# The package successfully builds using the overlay, so the
+# issue is specific to the development shells.
+# The issue is that, by specifying `c2hs` in `build-tool-depends`,
+# we can use `nix develop`, but from within that development shell, 
 # we get cabal build errors on account of the handling of c2hs.
+# Using `cabal update` seems to address this, but as a result `cabal build`
+# will build a local `c2hs` executable, even though a
+# suitable `c2hs` is already available on the path.
 # This appears to be documented in the references below, though please 
-# not that not all of the references might refer to the root issue.
-# As a work around, we comment out or disable 
-# `build-tool-depends` and instead override 
-# the cabal derivation attribute `nativeBuildInputs` to include `c2hs`.
-# This appears to allow us both to enter the shell (which itself performs
-# a build of `h3-hs`) and use cabal to rebuild and test the package.
+# note that not all of the references might refer to the root issue.
 # References:
 # * https://github.com/input-output-hk/haskell.nix/issues/760
 # * https://github.com/input-output-hk/haskell.nix/issues/231
@@ -21,7 +24,7 @@
 {
   inputs = {
     nixpkgs = {
-      url = "github:nixos/nixpkgs/nixos-24.05";
+      url = "github:nixos/nixpkgs/nixos-25.11";
     };
     flake-utils = {
       url = "github:numtide/flake-utils";
@@ -33,32 +36,28 @@
           haskell = prev.haskell // {
               packageOverrides = final.lib.composeExtensions prev.haskell.packageOverrides (
                   finalHaskell: prevHaskell:
-                    let
-                        h3-hs-preliminary = prevHaskell.callCabal2nix "h3-hs" ./. { h3 = final.h3_4; };
-                    in
                     {
-                      # h3-hs = prevHaskell.callCabal2nix "h3-hs" ./. { h3 = final.h3_4; };
-                      # h3-hs = prevHaskell.h3-hs.override { h3 = final.h3_4; };
-                      # h3-hs = h3-hs-preliminary.overrideAttrs (prevAttrs: {
-                      #     nativeBuildInputs = prevAttrs.nativeBuildInputs ++ [ finalHaskell.c2hs ];
-                      # });
-                      h3-hs = h3-hs-preliminary;
+                      h3-hs = prevHaskell.callCabal2nix "h3-hs" ./. { h3 = final.h3_4; };
                     }
               );
           };
       };
-      # h3-hs-hackage-overlay = final: prev: {
-      #     haskell = prev.haskell // {
-      #         packageOverrides = final.lib.composeExtensions prev.haskell.packageOverrides (
-      #             finalHaskell: prevHaskell:
-      #               {
-      #                 h3-hs = prevHaskell.callCabal2nix "h3-hs" ./. { h3 = final.h3_4; };
-      #                 # Use the following after upgrading nixpkgs
-      #                 # h3-hs = prevHaskell.h3-hs.override { h3 = final.h3_4; };
-      #               }
-      #         );
-      #     };
-      # };
+      # The following fixes the current hackage package tracked in nixpkgs
+      h3-hs-hackage-overlay = final: prev: {
+          haskell = prev.haskell // {
+              packageOverrides = final.lib.composeExtensions prev.haskell.packageOverrides (
+                  finalHaskell: prevHaskell:
+                    {
+                      # Remove the doJailBreak and nativeBuildInputs override when possible
+                      h3-hs = final.haskell.lib.doJailbreak (final.haskell.lib.markUnbroken (
+                        (prevHaskell.h3-hs.override { h3 = final.h3_4; }).overrideAttrs (prevAttrs: {
+                            nativeBuildInputs = prevAttrs.nativeBuildInputs ++ [ finalHaskell.c2hs ];
+                        })
+                      ));
+                    }
+              );
+          };
+      };
     in 
       flake-utils.lib.eachDefaultSystem (system:
         let 
@@ -67,102 +66,91 @@
             overlays = [ h3-hs-source-overlay ];
           };
           
-          # release-pkgs = import nixpkgs {
-          #   inherit system;
-          #   overlays = [ h3-hs-hackage-overlay ];
-          # };
-   
-          build-package-map = hs: [hs.cabal-install hs.test-framework-quickcheck2 hs.c2hs ]; # hs.c2hs
-          # build-package-map-with-h3 = hs: [hs.cabal-install hs.test-framework-quickcheck2 hs.c2hs hs.h3-hs];
-          haskell-build-packages = [
+          release-pkgs = import nixpkgs {
+            inherit system;
+            overlays = [ h3-hs-hackage-overlay ];
+          };
+  
+          base-packages = [
               pkgs.which
               pkgs.h3_4
-              pkgs.pkg-config
+          ];
+
+          build-package-map = hs: [hs.cabal-install hs.test-framework-quickcheck2 hs.c2hs ];
+          haskell-build-packages-default = base-packages ++ [
               (pkgs.haskellPackages.ghcWithPackages build-package-map)
           ];
-          # haskell-build-packages-with-h3 = [
-          #     pkgs.which
-          #     pkgs.h3_4
-          #     pkgs.pkg-config
-          #     (pkgs.haskellPackages.ghcWithPackages build-package-map-with-h3)
-          # ];
 
-          # release-haskell-package-map = hs: [hs.h3-hs hs.cabal-install hs.test-framework-quickcheck2];
-          # release-haskell-packages = [
-          #     pkgs.which
-          #     pkgs.h3_4
-          #     pkgs.pkg-config
-          #     # (pkgs.haskellPackages.ghcWithPackages (hs: [hs.h3-hs hs.cabal-install hs.c2hs hs.test-framework-quickcheck2]))
-          #     # NOTE: Removed c2hs from the following
-          #     (pkgs.haskellPackages.ghcWithPackages release-haskell-package-map) # (hs: [hs.h3-hs hs.cabal-install hs.test-framework-quickcheck2])
-          # ];
+          haskell-build-packages-for-version = ghcversion: haskellpackages: (base-packages ++ [
+              (pkgs.haskell.packages.${ghcversion}.ghcWithPackages haskellpackages)
+          ]);
+          
+          test-package-map = hs: [hs.cabal-install hs.test-framework-quickcheck2 hs.c2hs hs.h3-hs ];
+          haskell-build-packages-test = base-packages ++ [
+              (pkgs.haskellPackages.ghcWithPackages test-package-map)
+          ];
       in rec {
-        # devShell = devShells.default; 
-        # pkgs.mkShell {
-        #   packages = dev-haskell-packages;
-        #   # inputsFrom = dev-haskell-packages;
-        #   nativeBuildInputs = [ pkgs.haskellPackages.c2hs ]; #  dev-haskell-packages;
-        #   # buildInputs = dev-haskell-packages;
-        #   # propagatedBuildInputs = dev-haskell-packages;
-        #   # nativeBuildInputs = dev-haskell-packages;
-        #   # packages = [ 
-        #   #     pkgs.haskellPackages.cabal-install
-        #   #     pkgs.haskellPackages.c2hs
-        #   # ];
-        #   shellHook = "export PS1='\\[\\e[1;34m\\]h3-hs-dev > \\[\\e[0m\\]'";
-        # };
         devShells = {
             default = pkgs.mkShell {
-              packages = haskell-build-packages;
-              # inputsFrom = dev-haskell-packages;
-              nativeBuildInputs = [ pkgs.haskellPackages.c2hs ]; #  dev-haskell-packages;
-              # buildInputs = dev-haskell-packages;
-              # propagatedBuildInputs = dev-haskell-packages;
-              # nativeBuildInputs = dev-haskell-packages;
-              # packages = [ 
-              #     pkgs.haskellPackages.cabal-install
-              #     pkgs.haskellPackages.c2hs
-              # ];
-              shellHook = "export PS1='\\[\\e[1;34m\\]h3-hs-dev > \\[\\e[0m\\]'";
+              packages = haskell-build-packages-default;
+              shellHook = ''
+                export PS1="\\[\\e[1;34m\\]h3-hs-dev > \\[\\e[0m\\]"
+                export LD_LIBRARY_PATH=${pkgs.h3_4}/lib:$LD_LIBRARY_PATH
+              '';
             };
-            ex-h3-hs = pkgs.mkShell {
-              packages = [ pkgs.h3_4 (pkgs.haskellPackages.ghcWithPackages (hs: [hs.cabal-install hs.test-framework-quickcheck2])) ];
-              nativeBuildInputs = [ pkgs.haskellPackages.c2hs ];
-              shellHook = "export PS1='\\[\\e[1;34m\\]h3-hs-dev (ex h3-hs) > \\[\\e[0m\\]'";
+            ghc948shell = pkgs.mkShell {
+              # packages = [ pkgs.h3_4 (pkgs.haskell.packages.ghc948.ghcWithPackages build-package-map) ];
+              packages = haskell-build-packages-for-version "ghc948" build-package-map;
+              shellHook = ''
+                export PS1="\\[\\e[1;34m\\]h3-hs-dev (ghc-9.4.8) > \\[\\e[0m\\]"
+                export LD_LIBRARY_PATH=${pkgs.h3_4}/lib:$LD_LIBRARY_PATH
+              '';
             };
-            legacy = pkgs.haskellPackages.shellFor {
-                packages = p: [p.h3-hs];
-                withHoogle = true;
-                buildInputs =((with pkgs; [ h3_4 ]) ++ (with pkgs.haskellPackages; [ cabal-install c2hs ]));
-                shellHook = "export PS1='\\[\\e[1;34m\\]h3-hs-shellfor > \\[\\e[0m\\]'";
-                # exactDeps = false;
+            ghc967shell = pkgs.mkShell {
+              # packages = [ pkgs.h3_4 (pkgs.haskell.packages.ghc967.ghcWithPackages build-package-map) ];
+              packages = haskell-build-packages-for-version "ghc967" build-package-map;
+              shellHook = ''
+                export PS1="\\[\\e[1;34m\\]h3-hs-dev (ghc-9.6.7) > \\[\\e[0m\\]"
+                export LD_LIBRARY_PATH=${pkgs.h3_4}/lib:$LD_LIBRARY_PATH
+              '';
             };
-            ghc928shell = pkgs.mkShell {
-              packages = [ pkgs.h3_4 (pkgs.haskell.packages.ghc928.ghcWithPackages build-package-map) ];
-              # inputsFrom = [ (pkgs.haskell.packages.ghc928.ghcWithPackages (hs: [hs.c2hs])) ];
-              # buildInputs = [ (pkgs.haskell.packages.ghc928.ghcWithPackages (hs: [hs.c2hs])) ];
-              shellHook = "export PS1='\\[\\e[1;34m\\]h3-hs-dev (ghc-9.2.8) > \\[\\e[0m\\]'";
+            ghc984shell = pkgs.mkShell {
+              # packages = [ pkgs.which pkgs.h3_4 (pkgs.haskell.packages.ghc984.ghcWithPackages build-package-map) ];
+              packages = haskell-build-packages-for-version "ghc984" build-package-map;
+              shellHook = ''
+                export PS1="\\[\\e[1;34m\\]h3-hs-dev (ghc-9.8.4) > \\[\\e[0m\\]"
+                export LD_LIBRARY_PATH=${pkgs.h3_4}/lib:$LD_LIBRARY_PATH
+              '';
             };
-            ghc982shell = pkgs.mkShell {
-              # buildInputs = [ pkgs.h3_4 (pkgs.haskell.packages.ghc982.ghcWithPackages (hs: [hs.h3-hs hs.cabal-install hs.c2hs hs.test-framework-quickcheck2]))];
-              # inputsFrom = [ (pkgs.haskell.packages.ghc982.ghcWithPackages (hs: [hs.c2hs])) ];
-              # nativeBuildInputs = [ (pkgs.haskell.packages.ghc982.ghcWithPackages (hs: [hs.c2hs])) ];
-              # buildInputs = [ (pkgs.haskell.packages.ghc982.ghcWithPackages (hs: [hs.c2hs])) ];
-              packages = [ pkgs.which pkgs.h3_4 (pkgs.haskell.packages.ghc982.ghcWithPackages build-package-map) ];
-              shellHook = "export PS1='\\[\\e[1;34m\\]h3-hs-dev (ghc-9.8.2) > \\[\\e[0m\\]'";
+            ghc9103shell = pkgs.mkShell {
+              packages = haskell-build-packages-for-version "ghc9103" build-package-map;
+              shellHook = ''
+                export PS1="\\[\\e[1;34m\\]h3-hs-dev (ghc-9.10.3) > \\[\\e[0m\\]"
+                export LD_LIBRARY_PATH=${pkgs.h3_4}/lib:$LD_LIBRARY_PATH
+              '';
             };
-            # package-test = pkgs.mkShell {
-            #   packages = haskell-build-packages-with-h3;
-            #   # nativeBuildInputs = [ pkgs.haskellPackages.c2hs ];
-            #   shellHook = "export PS1='\\[\\e[1;34m\\]h3-hs (package test) > \\[\\e[0m\\]'";
-            # };
+            ghc9122shell = pkgs.mkShell {
+              packages = haskell-build-packages-for-version "ghc9122" build-package-map;
+              shellHook = ''
+                export PS1="\\[\\e[1;34m\\]h3-hs-dev (ghc-9.12.2) > \\[\\e[0m\\]"
+                export LD_LIBRARY_PATH=${pkgs.h3_4}/lib:$LD_LIBRARY_PATH
+              '';
+            };
+            packageTest = pkgs.mkShell {
+              # This is for testing the package build.  Use `ghci` rather than `cabal repl` for manual testing.
+              packages = haskell-build-packages-test;
+              shellHook = "export PS1='\\[\\e[1;34m\\]h3-hs (package test) > \\[\\e[0m\\]'";
+            };
         };
         packages = {
-          h3-hs = pkgs.haskellPackages.h3-hs;
           default = pkgs.haskellPackages.h3-hs;
+          h3-hs = pkgs.haskellPackages.h3-hs;
+          hackage-h3-hs = release-pkgs.haskellPackages.h3-hs;
         };
       }
     ) // {
       overlays.default = h3-hs-source-overlay;
+      overlays.h3-hs-source = h3-hs-source-overlay;
+      overlays.h3-hs-hackage = h3-hs-hackage-overlay;
     };
 }
