@@ -99,7 +99,6 @@
               '';
             };
             ghc948shell = pkgs.mkShell {
-              # packages = [ pkgs.h3_4 (pkgs.haskell.packages.ghc948.ghcWithPackages build-package-map) ];
               packages = haskell-build-packages-for-version "ghc948" build-package-map;
               shellHook = ''
                 export PS1="\\[\\e[1;34m\\]h3-hs-dev (ghc-9.4.8) > \\[\\e[0m\\]"
@@ -107,7 +106,6 @@
               '';
             };
             ghc967shell = pkgs.mkShell {
-              # packages = [ pkgs.h3_4 (pkgs.haskell.packages.ghc967.ghcWithPackages build-package-map) ];
               packages = haskell-build-packages-for-version "ghc967" build-package-map;
               shellHook = ''
                 export PS1="\\[\\e[1;34m\\]h3-hs-dev (ghc-9.6.7) > \\[\\e[0m\\]"
@@ -115,7 +113,6 @@
               '';
             };
             ghc984shell = pkgs.mkShell {
-              # packages = [ pkgs.which pkgs.h3_4 (pkgs.haskell.packages.ghc984.ghcWithPackages build-package-map) ];
               packages = haskell-build-packages-for-version "ghc984" build-package-map;
               shellHook = ''
                 export PS1="\\[\\e[1;34m\\]h3-hs-dev (ghc-9.8.4) > \\[\\e[0m\\]"
