@@ -1,5 +1,9 @@
 # Revision history for h3-hs
 
+## 0.2.0.2
+
+Updating dependencies in the cabal file.
+
 ## 0.2.0.1
 
 Updating the documentation to indicate that `gridDiskDistancesSafe` can hang. 
