@@ -38,8 +38,7 @@ tests =
 testCellToVertex :: Test
 testCellToVertex = testProperty "Test cellToVertex produces valid vertex indices" $ \(GenLatLng latLng) (Resolution res) (GenVertexNum vertexNum) ->
     let h3indexE = latLngToCell latLng res
-        isPentagonAsBool = (/=0) . isPentagon
-        isPent = either (const False) id (isPentagonAsBool <$> h3indexE)
+        isPent = either (const False) id (isPentagon <$> h3indexE)
         vertexIndexE = h3indexE >>= flip cellToVertex vertexNum
         resultE = isValidVertex <$> vertexIndexE
     in (not isPent || vertexNum <= 4) ==> (resultE == Right True)

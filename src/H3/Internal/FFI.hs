@@ -61,14 +61,26 @@ foreign import capi "h3/h3api.h getResolution" getResolution :: H3Index -> Int
 -- | Returns the base cell number of the index.
 foreign import capi "h3/h3api.h getBaseCellNumber" getBaseCellNumber :: H3Index -> Int
 
--- | isValidCell returns non-zero if this is a valid H3 cell index
-foreign import capi "h3/h3api.h isValidCell" isValidCell :: H3Index -> Int
+-- | cIsValidCell returns non-zero if this is a valid H3 cell index
+foreign import capi "h3/h3api.h isValidCell" cIsValidCell :: H3Index -> Int
+
+-- | isValidCell returns True if this is a valid H3 cell index
+isValidCell :: H3Index -> Bool
+isValidCell = (/=0) . cIsValidCell
 
 -- | Returns non-zero if this index has a resolution with Class III orientation.
-foreign import capi "h3/h3api.h isResClassIII" isResClassIII :: H3Index -> Int
+foreign import capi "h3/h3api.h isResClassIII" cIsResClassIII :: H3Index -> Int
+
+-- | Returns True if this index has a resolution with Class III orientation.
+isResClassIII :: H3Index -> Bool
+isResClassIII = (/=0) . cIsResClassIII
 
 -- | Returns non-zero if this index represents a pentagonal cell.
-foreign import capi "h3/h3api.h isPentagon" isPentagon :: H3Index -> Int
+foreign import capi "h3/h3api.h isPentagon" cIsPentagon :: H3Index -> Int
+
+-- | Returns True if this index represents a pentagonal cell.
+isPentagon :: H3Index -> Bool
+isPentagon = (/=0) . cIsPentagon
 
 foreign import capi "h3/h3api.h maxFaceCount" c_maxFaceCount :: H3Index -> Ptr CInt -> IO H3Error
 

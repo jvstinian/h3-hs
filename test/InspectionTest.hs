@@ -64,7 +64,7 @@ testIsInvalidCell :: Test
 testIsInvalidCell = testProperty "Testing invalid cell value" $
     actualResultE == expectedResultE
     where
-        actualResultE = (/=0) . isValidCell <$> (stringToH3 "85283473ffff")
+        actualResultE = isValidCell <$> (stringToH3 "85283473ffff")
         expectedResultE = Right False
 
 -- The following is from https://github.com/uber/h3/blob/master/tests/cli/isValidCell.txt
@@ -72,14 +72,14 @@ testIsValidCell :: Test
 testIsValidCell = testProperty "Testing cell value is valid" $
     actualResultE == expectedResultE
     where
-        actualResultE = (/=0) . isValidCell <$> (stringToH3 "85283473fffffff")
+        actualResultE = isValidCell <$> (stringToH3 "85283473fffffff")
         expectedResultE = Right True
 
 testIsResClassIII :: Test
 testIsResClassIII = testProperty "Testing isResClassIII" $
     actualResultE == expectedResultE
     where
-        actualResultE = (/=0) . isResClassIII <$> (stringToH3 "85283473fffffff")
+        actualResultE = isResClassIII <$> (stringToH3 "85283473fffffff")
         expectedResultE = Right True
 
 -- This is taken from https://github.com/uber/h3/blob/master/tests/cli/isPentagon.txt
@@ -87,7 +87,7 @@ testIsPentagon :: Test
 testIsPentagon = testProperty "Testing isPentagon" $
     actualResultE == expectedResultE
     where
-        actualResultE = (/=0) . isPentagon <$> (stringToH3 "85283473fffffff")
+        actualResultE = isPentagon <$> (stringToH3 "85283473fffffff")
         expectedResultE = Right False
 
 -- This is taken from https://github.com/uber/h3/blob/master/tests/cli/getIcosahedronFaces.txt
@@ -129,7 +129,7 @@ testIntToStringToInt = testProperty "test conversion from int to string and back
 
 testIsValidWithMockData :: Test
 testIsValidWithMockData = testProperty "test isValidCell" $ \(GenLatLng latLng) (Resolution res) ->
-    let actualResultE = (/=0) . isValidCell <$> latLngToCell latLng res
+    let actualResultE = isValidCell <$> latLngToCell latLng res
         expectedResultE = Right True
     in 
     actualResultE == expectedResultE
