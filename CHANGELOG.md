@@ -1,5 +1,9 @@
 # Revision history for h3-hs
 
+## 0.3.0.0
+
+`isValidCell`, `isResClassIII`, and `isPentagon` now return a boolean.
+
 ## 0.2.0.2
 
 Updating dependencies in the cabal file.
