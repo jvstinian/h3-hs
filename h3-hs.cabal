@@ -59,7 +59,7 @@ author:             Justin Smith
 maintainer:         jvstinian@gmail.com
 
 -- A copyright notice.
-copyright:          (c) 2024 Justin Smith
+copyright:          (c) 2024-2026 Justin Smith
 category:           Geography
 build-type:         Simple
 
@@ -73,7 +73,7 @@ tested-with: GHC==9.12.2 GHC==9.10.3 GHC==9.8.4 GHC==9.6.7 GHC==9.6.3 GHC==9.4.8
 
 source-repository head
   type: git
-  location: git://github.com/jvstinian/h3-hs.git
+  location: https://github.com/jvstinian/h3-hs
 
 common warnings
     ghc-options: -Wall -g
