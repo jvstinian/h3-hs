@@ -17,5 +17,5 @@ newtype GenLatLng = GenLatLng { fromGenLatLng :: LatLng }
   deriving (Eq, Show)
 
 instance Arbitrary GenLatLng where
-    arbitrary = GenLatLng <$> liftM2 LatLng (choose (-pi, pi)) (choose (-pi, pi))
+    arbitrary = GenLatLng <$> liftM2 LatLng (choose (-pi/2, pi/2)) (choose (-pi, pi))
 
